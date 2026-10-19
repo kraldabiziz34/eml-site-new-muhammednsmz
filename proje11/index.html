@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SineEvren | Popüler Filmler</title>
+    <!-- Sinematik bir font çekiyoruz -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1 class="logo" onclick="window.location.reload()">MUHAMMEDFLIX</h1>
+        <div class="arama-kutusu">
+            <input type="text" id="arama-input" placeholder="Film veya dizi ara...">
+        </div>
+    </header>
+
+    <!-- HERO BANNER (DEVASA AFİŞ ALANI) -->
+    <section id="hero-banner" class="hero-section">
+        <div class="hero-content">
+            <h1 id="hero-title" class="hero-title">
+                Yükleniyor...</h1>
+            <p id="hero-overview" class="hero-desc">En popüler filmler arasında seçim yapılıyor...</p>
+            <div class="hero-buttons">
+                <button class="btn-play" onclick="playHeroFilm()">▶ Oynat</button>
+                <button class="btn-info" onclick="showHeroDetails()">ℹ Daha Fazla Bilgi</button>
+            </div>
+        </div>
+        <div class="hero-overlay"></div>
+    </section>
+
+    <!-- FİLMLERİN DİNAMİK OLARAK GELECEĞİ BOŞ KUTU -->
+    <main id="film-vitrini" class="izgara-yapisi">
+        <!-- JS: <article class="film-karti"> ... </article> buraya gelecek -->
+    </main>
+
+    <!-- DAHA FAZLA YÜKLE BUTONU -->
+    <div class="daha-fazla-container">
+        <button id="daha-fazla-btn">Daha Fazla Film Yükle</button>
+    </div>
+
+    <!-- FİLM DETAY PENCERESİ (MODAL) -->
+    <div id="film-modal" class="modal">
+        <div class="modal-icerik">
+            <span class="kapat-btn" onclick="modalKapat()">&times;</span>
+            <div class="modal-detay">
+                <img id="modal-resim" src="" alt="Film Afişi">
+                <div class="modal-yazi">
+                    <h2 id="modal-baslik">Film Adı</h2>
+                    <p id="modal-tarih" class="tarih">Yayın Tarihi: </p>
+                    <p id="modal-puan" class="puan-rozet">0.0</p>
+                    <h3>Konu Özeti:</h3>
+                    <p id="modal-ozet">Özet bilgisi burada yer alacak...</p>
+                    
+                    <!-- OYUNCU KADROSU BÖLÜMÜ -->
+                    <div id="oyuncu-kadrosu" style="margin-top:20px;">
+                        <h3>Oyuncular</h3>
+                        <div id="oyuncu-listesi" style="display:flex; gap:15px; overflow-x:auto; padding-bottom:10px;"></div>
+                    </div>
+
+                    <!-- BENZER FİLMLER BÖLÜMÜ -->
+                    <div id="benzer-filmler" style="margin-top:20px;">
+                        <h3>Bunlar da Hoşunuza Gidebilir</h3>
+                        <div id="benzer-listesi" style="display:flex; gap:10px; overflow-x:auto; padding-bottom:10px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GÖREV 4: Yukarı Çık Butonu -->
+    <button id="yukari-cik-btn" class="yukari-cik" title="En Üste Çık">↑</button>
+
+    <footer>
+        <p>&copy; 2024 SineEvren | Veriler TMDB API'den sağlanmaktadır.</p>
+    </footer>
+
+    <!-- JS BAĞLANTISI EN ALTTA! -->
+    <script src="app.js"></script>
+</body>
+</html>

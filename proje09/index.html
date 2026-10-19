@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemi Ana Bilgisayarı | Giriş</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="ana-menu-bar">
+    <a class="ana-menu-btn" href="../index.html">&#8592; ANA MENU</a>
+</div>
+    <div class="panel">
+        <h1 id="baslik">GÜVENLİK DUVARI AÇIK</h1>
+        <p>Lütfen kaptan erişim kodunu giriniz:</p>
+        
+        <input type="password" id="sifreKutusu" placeholder="Kod: 2025">
+        
+        <button onclick="girisYap()">SİSTEME GİRİŞ YAP</button>
+        
+        <p id="mesajAlani" class="uyari-mesaji"></p>
+
+        <nav id="gizliMenu" style="display: none;">
+            <a href="kontrol.html">Sistem Kontrol</a> | 
+            <a href="personel.html">Personel Verileri</a>
+        </nav>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,447 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #080808;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    min-height: 100vh;
+}
+
+/* ANA OYUN ALANI */
+
+.game-container {
+    width: 95%;
+    max-width: 1100px;
+    margin: 30px auto;
+    text-align: center;
+}
+
+.game-title {
+    color: #00ff00;
+    font-size: 40px;
+    margin-bottom: 20px;
+    text-shadow:
+        0 0 5px #00ff00,
+        0 0 15px #00ff00,
+        0 0 30px #00ff00;
+}
+
+.game-screen {
+    width: 100%;
+    min-height: 550px;
+    background: #050505;
+    border: 4px solid #00ff00;
+    box-shadow:
+        0 0 10px #00ff00,
+        0 0 30px rgba(0, 255, 0, 0.4);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* SKOR */
+
+.score {
+    font-size: 22px;
+    color: #ffff00;
+    margin: 10px 0 20px;
+    text-shadow: 0 0 10px yellow;
+}
+
+/* BUTONLAR */
+
+button {
+    background: #111;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #00ff00;
+    color: #000;
+    box-shadow: 0 0 15px #00ff00;
+}
+
+/* ANA MENÜ BUTONU */
+
+.ana-menu-bar {
+    display: flex;
+    width: 95%;
+    max-width: 1100px;
+    margin: 20px auto 0;
+}
+
+.ana-menu-btn {
+    display: inline-block;
+    padding: 10px 22px;
+    background: #111;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 15px;
+    transition: 0.2s;
+}
+
+.ana-menu-btn:hover {
+    background: #00ff00;
+    color: #000;
+    box-shadow: 0 0 15px #00ff00;
+}
+
+
+/* GERİ DÖN */
+
+.back-button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 25px;
+    background: #111;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.back-button:hover {
+    background: #00ff00;
+    color: #000;
+    box-shadow: 0 0 15px #00ff00;
+}
+
+/* KONTROLLER */
+
+.controls {
+    margin-top: 15px;
+    color: #aaa;
+    font-size: 16px;
+}
+
+.controls span {
+    color: #00ffff;
+    font-weight: bold;
+    margin: 0 5px;
+}
+
+/* CANVAS */
+
+canvas {
+    display: block;
+    margin: 0 auto;
+    background: #000;
+    border: 2px solid white;
+    max-width: 100%;
+}
+
+/* ================================================= */
+/* PAC-MAN */
+/* ================================================= */
+
+.pacman-game {
+    background: #000;
+    position: relative;
+    width: 500px;
+    max-width: 100%;
+    height: 500px;
+    margin: auto;
+    border: 3px solid #1919ff;
+}
+
+.pacman {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background: yellow;
+    border-radius: 50%;
+}
+
+.ghost {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 15px 15px 5px 5px;
+}
+
+.dot {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    background: white;
+    border-radius: 50%;
+}
+
+/* ================================================= */
+/* TETRIS */
+/* ================================================= */
+
+.tetris-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+}
+
+.tetris-board {
+    display: grid;
+    grid-template-columns: repeat(10, 30px);
+    grid-template-rows: repeat(20, 30px);
+    border: 3px solid white;
+    background: #000;
+}
+
+.tetris-cell {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #222;
+}
+
+.tetris-info {
+    text-align: left;
+    min-width: 150px;
+}
+
+.tetris-info h2 {
+    color: #00ffff;
+    margin-bottom: 15px;
+}
+
+.tetris-info p {
+    margin: 10px 0;
+    color: #ccc;
+}
+
+/* TETRIS RENKLERİ */
+
+.tetris-i {
+    background: cyan;
+}
+
+.tetris-o {
+    background: yellow;
+}
+
+.tetris-t {
+    background: purple;
+}
+
+.tetris-s {
+    background: lime;
+}
+
+.tetris-z {
+    background: red;
+}
+
+.tetris-j {
+    background: blue;
+}
+
+.tetris-l {
+    background: orange;
+}
+
+/* ================================================= */
+/* MARIO */
+/* ================================================= */
+
+.mario-game {
+    position: relative;
+    width: 800px;
+    max-width: 100%;
+    height: 450px;
+    margin: auto;
+    overflow: hidden;
+    background: #5c94fc;
+    border: 3px solid white;
+}
+
+.mario-cloud {
+    position: absolute;
+    width: 80px;
+    height: 30px;
+    background: white;
+    border-radius: 30px;
+}
+
+.mario-ground {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 70px;
+    background: #8b4513;
+    border-top: 10px solid #228b22;
+}
+
+.mario {
+    position: absolute;
+    width: 35px;
+    height: 50px;
+    background: red;
+    bottom: 70px;
+    left: 100px;
+}
+
+.mario-block {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: #d2691e;
+    border: 3px solid #8b4513;
+}
+
+.coin {
+    position: absolute;
+    width: 20px;
+    height: 28px;
+    background: gold;
+    border-radius: 50%;
+}
+
+/* ================================================= */
+/* SPACE INVADERS */
+/* ================================================= */
+
+.space-game {
+    position: relative;
+    width: 700px;
+    max-width: 100%;
+    height: 500px;
+    margin: auto;
+    background: #000;
+    border: 3px solid white;
+    overflow: hidden;
+}
+
+.invader {
+    position: absolute;
+    width: 30px;
+    height: 25px;
+    background: #00ff00;
+}
+
+.invader::before {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #000;
+    left: 5px;
+    top: 5px;
+    box-shadow: 10px 0 #000;
+}
+
+.player {
+    position: absolute;
+    width: 45px;
+    height: 20px;
+    background: #00ffff;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.bullet {
+    position: absolute;
+    width: 4px;
+    height: 12px;
+    background: red;
+}
+
+/* ================================================= */
+/* BAŞLANGIÇ EKRANI */
+/* ================================================= */
+
+.start-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 450px;
+}
+
+.start-screen h2 {
+    color: #00ffff;
+    font-size: 32px;
+    margin-bottom: 20px;
+}
+
+.start-screen p {
+    color: #aaa;
+    margin-bottom: 20px;
+}
+
+/* ================================================= */
+/* GAME OVER */
+/* ================================================= */
+
+.game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    border: 3px solid red;
+    padding: 30px;
+    text-align: center;
+    z-index: 100;
+}
+
+.game-over h2 {
+    color: red;
+    font-size: 35px;
+    margin-bottom: 15px;
+}
+
+/* ================================================= */
+/* MOBİL */
+/* ================================================= */
+
+@media (max-width: 700px) {
+
+    .game-container {
+        width: 98%;
+        margin: 15px auto;
+    }
+
+    .game-title {
+        font-size: 28px;
+    }
+
+    .game-screen {
+        padding: 10px;
+    }
+
+    .tetris-wrapper {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .tetris-board {
+        grid-template-columns: repeat(10, 22px);
+        grid-template-rows: repeat(20, 22px);
+    }
+
+    .tetris-cell {
+        width: 22px;
+        height: 22px;
+    }
+
+    .mario-game {
+        height: 350px;
+    }
+
+    .space-game {
+        height: 400px;
+    }
+}

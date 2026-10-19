@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Personel | Oksijen</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="ana-menu-bar">
+    <a class="ana-menu-btn" href="../index.html">&#8592; ANA MENU</a>
+</div>
+    <div class="panel">
+        <h1>GÜNLÜK OKSİJEN HESAPLAYICI</h1>
+        <nav>
+            <a href="kontrol.html">Sistem Kontrol</a> |
+            <a href="index.html">Çıkış Yap</a>
+        </nav>
+        <hr>
+
+        <p>Personel Rütbesini Seçin:</p>
+        <select id="rutbeSecim">
+            <option value="kaptan">Kaptan (Yoğun Stres)</option>
+            <option value="muhendis">Mühendis (Fiziksel Efor)</option>
+            <option value="bilim">Bilim İnsanı (Standart)</option>
+            <option value="isci">İşçi (Ağır Efor)</option>
+        </select>
+
+        <button onclick="oksijenHesapla()">Hesapla</button>
+
+        <h2 id="sonucAlani">Sonuç bekleniyor...</h2>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

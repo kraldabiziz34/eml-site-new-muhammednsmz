@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="ana-menu-bar">
+    <a class="ana-menu-btn" href="../index.html">&#8592; ANA MENU</a>
+</div>
+
+<div class="game-container">
+
+    <h1 class="game-title">TETRIS</h1>
+
+    <div class="game-screen">
+
+        <div class="tetris-layout">
+
+            <div class="side-panel">
+
+                <div class="info-box">
+                    <span>SKOR</span>
+                    <strong id="score">0</strong>
+                </div>
+
+                <div class="info-box">
+                    <span>EN YÜKSEK</span>
+                    <strong id="highScore">0</strong>
+                </div>
+
+                <div class="info-box">
+                    <span>SEVİYE</span>
+                    <strong id="level">1</strong>
+                </div>
+
+                <div class="info-box">
+                    <span>SATIR</span>
+                    <strong id="lines">0</strong>
+                </div>
+
+                <div class="info-box">
+                    <span>COMBO</span>
+                    <strong id="combo">0</strong>
+                </div>
+
+            </div>
+
+            <div class="board-wrapper">
+
+                <canvas
+                    id="game"
+                    width="300"
+                    height="600">
+                </canvas>
+
+                <div id="gameMessage" class="game-message">
+
+                    <h2 id="messageTitle">TETRIS</h2>
+
+                    <p id="messageText">
+                        Oyuna başlamak için bir tuşa bas.
+                    </p>
+
+                    <button id="startButton">
+                        OYUNA BAŞLA
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="side-panel">
+
+                <div class="next-box">
+
+                    <h3>SONRAKİ</h3>
+
+                    <canvas
+                        id="next"
+                        width="120"
+                        height="120">
+                    </canvas>
+
+                </div>
+
+                <div class="controls-box">
+
+                    <h3>KONTROLLER</h3>
+
+                    <p>← → Hareket</p>
+                    <p>↓ Hızlandır</p>
+                    <p>↑ Döndür</p>
+                    <p>SPACE Bırak</p>
+                    <p>P Duraklat</p>
+                    <p>R Yeniden Başlat</p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="mobile-controls">
+
+            <button data-action="left">←</button>
+            <button data-action="rotate">↻</button>
+            <button data-action="down">↓</button>
+            <button data-action="right">→</button>
+            <button data-action="drop">DROP</button>
+
+        </div>
+
+        <button id="restartButton" class="restart-button">
+            ↻ YENİDEN BAŞLAT
+        </button>
+
+    </div>
+
+    <a href="retro.html" class="back-button">
+        ← Oyunlara Dön
+    </a>
+
+</div>
+
+
+<script>
+
+"use strict";
+
+/* ================================
+   CANVAS
+================================ */
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const nextCanvas = document.getElementById("next");
+const nextCtx = nextCanvas.getContext("2d");
+
+
+/* ================================
+   AYARLAR
+================================ */
+
+const ROWS = 20;
+const COLS = 10;
+const SIZE = 30;
+
+
+/* ================================
+   RENKLER
+================================ */
+
+const COLORS = [
+    null,
+    "#00f0f0",
+    "#f0f000",
+    "#a000f0",
+    "#00f000",
+    "#f00000",
+    "#0000f0",
+    "#f0a000"
+];
+
+
+/* ================================
+   TETRIS PARÇALARI
+================================ */
+
+const PIECES = [
+
+    [
+        [1, 1, 1, 1]
+    ],
+
+    [
+        [2, 2],
+        [2, 2]
+    ],
+
+    [
+        [0, 3, 0],
+        [3, 3, 3]
+    ],
+
+    [
+        [0, 4, 4],
+        [4, 4, 0]
+    ],
+
+    [
+        [5, 5, 0],
+        [0, 5, 5]
+    ],
+
+    [
+        [6, 0, 0],
+        [6, 6, 6]
+    ],
+
+    [
+        [0, 0, 7],
+        [7, 7, 7]
+    ]
+
+];
+
+
+/* ================================
+   OYUN DEĞİŞKENLERİ
+================================ */
+
+let board;
+
+let currentPiece;
+let nextPiece;
+
+let pieceX;
+let pieceY;
+
+let score = 0;
+
+let highScore =
+    Number(localStorage.getItem("tetrisHighScore")) || 0;
+
+let level = 1;
+let lines = 0;
+let combo = 0;
+
+let gameStarted = false;
+let gamePaused = false;
+let gameOver = false;
+
+let dropCounter = 0;
+let lastTime = 0;
+
+let dropInterval = 800;
+
+
+/* ================================
+   HTML ELEMANLARI
+================================ */
+
+const scoreElement =
+    document.getElementById("score");
+
+const highScoreElement =
+    document.getElementById("highScore");
+
+const levelElement =
+    document.getElementById("level");
+
+const linesElement =
+    document.getElementById("lines");
+
+const comboElement =
+    document.getElementById("combo");
+
+const gameMessage =
+    document.getElementById("gameMessage");
+
+const messageTitle =
+    document.getElementById("messageTitle");
+
+const messageText =
+    document.getElementById("messageText");
+
+const startButton =
+    document.getElementById("startButton");
+
+const restartButton =
+    document.getElementById("restartButton");
+
+
+/* ================================
+   SES
+================================ */
+
+let audioContext = null;
+
+
+function initAudio() {
+
+    if (!audioContext) {
+
+        audioContext =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+    }
+
+}
+
+
+function playSound(
+    frequency,
+    duration = 0.08
+) {
+
+    try {
+
+        initAudio();
+
+        const oscillator =
+            audioContext.createOscillator();
+
+        const gain =
+            audioContext.createGain();
+
+        oscillator.type = "square";
+
+        oscillator.frequency.value =
+            frequency;
+
+        gain.gain.setValueAtTime(
+            0.05,
+            audioContext.currentTime
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioContext.currentTime + duration
+        );
+
+        oscillator.connect(gain);
+
+        gain.connect(audioContext.destination);
+
+        oscillator.start();
+
+        oscillator.stop(
+            audioContext.currentTime + duration
+        );
+
+    } catch (error) {
+
+        // Ses desteklenmiyorsa oyun devam eder.
+
+    }
+
+}
+
+
+/* ================================
+   TAHTA
+================================ */
+
+function createBoard() {
+
+    board = Array.from(
+        { length: ROWS },
+        () => Array(COLS).fill(0)
+    );
+
+}
+
+
+/* ================================
+   RASTGELE PARÇA
+================================ */
+
+function randomPiece() {
+
+    const index =
+        Math.floor(
+            Math.random() * PIECES.length
+        );
+
+    return PIECES[index].map(
+        row => [...row]
+    );
+
+}
+
+
+/* ================================
+   PARÇA OLUŞTUR
+================================ */
+
+function spawnPiece() {
+
+    currentPiece =
+        nextPiece || randomPiece();
+
+    nextPiece =
+        randomPiece();
+
+    pieceY = 0;
+
+    pieceX =
+        Math.floor(
+            (COLS - currentPiece[0].length) / 2
+        );
+
+    drawNextPiece();
+
+    if (collision()) {
+
+        endGame();
+
+    }
+
+}
+
+
+/* ================================
+   ÇARPIŞMA
+================================ */
+
+function collision(
+    offsetX = 0,
+    offsetY = 0,
+    testPiece = currentPiece
+) {
+
+    for (
+        let y = 0;
+        y < testPiece.length;
+        y++
+    ) {
+
+        for (
+            let x = 0;
+            x < testPiece[y].length;
+            x++
+        ) {
+
+            if (!testPiece[y][x]) {
+                continue;
+            }
+
+            const nx =
+                pieceX + x + offsetX;
+
+            const ny =
+                pieceY + y + offsetY;
+
+            if (
+                nx < 0 ||
+                nx >= COLS ||
+                ny >= ROWS
+            ) {
+
+                return true;
+
+            }
+
+            if (
+                ny >= 0 &&
+                board[ny][nx]
+            ) {
+
+                return true;
+
+            }
+
+        }
+
+    }
+
+    return false;
+
+}
+
+
+/* ================================
+   PARÇAYI BİRLEŞTİR
+================================ */
+
+function merge() {
+
+    for (
+        let y = 0;
+        y < currentPiece.length;
+        y++
+    ) {
+
+        for (
+            let x = 0;
+            x < currentPiece[y].length;
+            x++
+        ) {
+
+            if (currentPiece[y][x]) {
+
+                const boardY =
+                    pieceY + y;
+
+                const boardX =
+                    pieceX + x;
+
+                if (boardY >= 0) {
+
+                    board[boardY][boardX] =
+                        currentPiece[y][x];
+
+                }
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* ================================
+   SATIRLARI TEMİZLE
+================================ */
+
+function clearLines() {
+
+    let cleared = 0;
+
+    for (
+        let y = ROWS - 1;
+        y >= 0;
+        y--
+    ) {
+
+        if (
+            board[y].every(
+                cell => cell !== 0
+            )
+        ) {
+
+            board.splice(y, 1);
+
+            board.unshift(
+                Array(COLS).fill(0)
+            );
+
+            cleared++;
+
+            y++;
+
+        }
+
+    }
+
+
+    if (cleared === 0) {
+
+        combo = 0;
+
+        comboElement.textContent = combo;
+
+        return;
+
+    }
+
+
+    const points = [
+        0,
+        100,
+        300,
+        500,
+        800
+    ];
+
+
+    score +=
+        points[cleared] * level;
+
+
+    if (combo > 0) {
+
+        score +=
+            combo * 50 * level;
+
+    }
+
+
+    combo++;
+
+    lines += cleared;
+
+
+    level =
+        Math.floor(lines / 10) + 1;
+
+
+    dropInterval =
+        Math.max(
+            80,
+            800 - (level - 1) * 65
+        );
+
+
+    updateScore();
+
+    playSound(
+        cleared === 4 ? 900 : 650,
+        0.15
+    );
+
+}
+
+
+/* ================================
+   SAĞA / SOLA HAREKET
+================================ */
+
+function moveHorizontal(direction) {
+
+    if (
+        !gameStarted ||
+        gamePaused ||
+        gameOver
+    ) {
+        return;
+    }
+
+    pieceX += direction;
+
+    if (collision()) {
+
+        pieceX -= direction;
+
+    } else {
+
+        playSound(250);
+
+    }
+
+}
+
+
+/* ================================
+   AŞAĞI HAREKET
+================================ */
+
+function moveDown() {
+
+    if (
+        !gameStarted ||
+        gamePaused ||
+        gameOver
+    ) {
+        return false;
+    }
+
+
+    if (!collision(0, 1)) {
+
+        pieceY++;
+
+        score += 1;
+
+        updateScore();
+
+        return true;
+
+    }
+
+
+    lockPiece();
+
+    return false;
+
+}
+
+
+/* ================================
+   TAŞI KİLİTLE
+================================ */
+
+function lockPiece() {
+
+    merge();
+
+    clearLines();
+
+    playSound(400);
+
+    spawnPiece();
+
+}
+
+
+/* ================================
+   HARD DROP
+================================ */
+
+function hardDrop() {
+
+    if (
+        !gameStarted ||
+        gamePaused ||
+        gameOver
+    ) {
+        return;
+    }
+
+
+    let distance = 0;
+
+
+    while (!collision(0, 1)) {
+
+        pieceY++;
+
+        distance++;
+
+    }
+
+
+    score += distance * 2;
+
+    updateScore();
+
+    lockPiece();
+
+}
+
+
+/* ================================
+   DÖNDÜRME
+================================ */
+
+function rotatePiece() {
+
+    if (
+        !gameStarted ||
+        gamePaused ||
+        gameOver
+    ) {
+        return;
+    }
+
+
+    const oldPiece =
+        currentPiece;
+
+    const oldX =
+        pieceX;
+
+
+    currentPiece =
+        currentPiece[0].map(
+            (_, index) =>
+                currentPiece
+                    .map(row => row[index])
+                    .reverse()
+        );
+
+
+    const kicks = [
+        0,
+        -1,
+        1,
+        -2,
+        2
+    ];
+
+
+    let rotated = false;
+
+
+    for (const kick of kicks) {
+
+        pieceX =
+            oldX + kick;
+
+        if (!collision()) {
+
+            rotated = true;
+
+            break;
+
+        }
+
+    }
+
+
+    if (!rotated) {
+
+        currentPiece =
+            oldPiece;
+
+        pieceX =
+            oldX;
+
+    } else {
+
+        playSound(500);
+
+    }
+
+}
+
+
+/* ================================
+   GHOST PIECE
+================================ */
+
+function getGhostY() {
+
+    let ghostY =
+        pieceY;
+
+
+    while (
+        !collision(
+            0,
+            ghostY - pieceY + 1
+        )
+    ) {
+
+        ghostY++;
+
+    }
+
+
+    return ghostY;
+
+}
+
+
+/* ================================
+   SKOR GÜNCELLE
+================================ */
+
+function updateScore() {
+
+    if (score > highScore) {
+
+        highScore = score;
+
+        localStorage.setItem(
+            "tetrisHighScore",
+            highScore
+        );
+
+    }
+
+
+    scoreElement.textContent =
+        score;
+
+    highScoreElement.textContent =
+        highScore;
+
+    levelElement.textContent =
+        level;
+
+    linesElement.textContent =
+        lines;
+
+    comboElement.textContent =
+        combo;
+
+}
+
+
+/* ================================
+   BLOK ÇİZ
+================================ */
+
+function drawBlock(
+    context,
+    x,
+    y,
+    colorIndex,
+    size
+) {
+
+    const color =
+        COLORS[colorIndex];
+
+
+    context.fillStyle =
+        color;
+
+    context.fillRect(
+        x * size + 1,
+        y * size + 1,
+        size - 2,
+        size - 2
+    );
+
+
+    context.fillStyle =
+        "rgba(255,255,255,0.30)";
+
+    context.fillRect(
+        x * size + 3,
+        y * size + 3,
+        size - 6,
+        4
+    );
+
+
+    context.fillStyle =
+        "rgba(0,0,0,0.25)";
+
+    context.fillRect(
+        x * size + 3,
+        y * size + size - 7,
+        size - 6,
+        4
+    );
+
+
+    context.strokeStyle =
+        "rgba(0,0,0,0.5)";
+
+    context.strokeRect(
+        x * size + 1,
+        y * size + 1,
+        size - 2,
+        size - 2
+    );
+
+}
+
+
+/* ================================
+   TAHTAYI ÇİZ
+================================ */
+
+function drawBoard() {
+
+    ctx.fillStyle = "#050505";
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    ctx.strokeStyle =
+        "rgba(255,255,255,0.06)";
+
+    ctx.lineWidth = 1;
+
+
+    for (
+        let x = 0;
+        x <= COLS;
+        x++
+    ) {
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            x * SIZE,
+            0
+        );
+
+        ctx.lineTo(
+            x * SIZE,
+            canvas.height
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    for (
+        let y = 0;
+        y <= ROWS;
+        y++
+    ) {
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            0,
+            y * SIZE
+        );
+
+        ctx.lineTo(
+            canvas.width,
+            y * SIZE
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    for (
+        let y = 0;
+        y < ROWS;
+        y++
+    ) {
+
+        for (
+            let x = 0;
+            x < COLS;
+            x++
+        ) {
+
+            if (board[y][x]) {
+
+                drawBlock(
+                    ctx,
+                    x,
+                    y,
+                    board[y][x],
+                    SIZE
+                );
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* ================================
+   PARÇAYI ÇİZ
+================================ */
+
+function drawPiece() {
+
+    if (!currentPiece) {
+        return;
+    }
+
+
+    const ghostY =
+        getGhostY();
+
+
+    /*
+       Ghost
+    */
+
+    for (
+        let y = 0;
+        y < currentPiece.length;
+        y++
+    ) {
+
+        for (
+            let x = 0;
+            x < currentPiece[y].length;
+            x++
+        ) {
+
+            if (currentPiece[y][x]) {
+
+                ctx.fillStyle =
+                    "rgba(255,255,255,0.12)";
+
+                ctx.fillRect(
+                    (pieceX + x) * SIZE + 4,
+                    (ghostY + y) * SIZE + 4,
+                    SIZE - 8,
+                    SIZE - 8
+                );
+
+            }
+
+        }
+
+    }
+
+
+    /*
+       Gerçek taş
+    */
+
+    for (
+        let y = 0;
+        y < currentPiece.length;
+        y++
+    ) {
+
+        for (
+            let x = 0;
+            x < currentPiece[y].length;
+            x++
+        ) {
+
+            if (currentPiece[y][x]) {
+
+                drawBlock(
+                    ctx,
+                    pieceX + x,
+                    pieceY + y,
+                    currentPiece[y][x],
+                    SIZE
+                );
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* ================================
+   SONRAKİ TAŞ
+================================ */
+
+function drawNextPiece() {
+
+    nextCtx.fillStyle =
+        "#050505";
+
+    nextCtx.fillRect(
+        0,
+        0,
+        120,
+        120
+    );
+
+
+    if (!nextPiece) {
+        return;
+    }
+
+
+    const blockSize = 25;
+
+
+    const width =
+        nextPiece[0].length *
+        blockSize;
+
+    const height =
+        nextPiece.length *
+        blockSize;
+
+
+    const offsetX =
+        (120 - width) / 2;
+
+    const offsetY =
+        (120 - height) / 2;
+
+
+    for (
+        let y = 0;
+        y < nextPiece.length;
+        y++
+    ) {
+
+        for (
+            let x = 0;
+            x < nextPiece[y].length;
+            x++
+        ) {
+
+            if (nextPiece[y][x]) {
+
+                const color =
+                    COLORS[nextPiece[y][x]];
+
+
+                nextCtx.fillStyle =
+                    color;
+
+
+                nextCtx.fillRect(
+                    offsetX + x * blockSize,
+                    offsetY + y * blockSize,
+                    blockSize - 2,
+                    blockSize - 2
+                );
+
+
+                nextCtx.fillStyle =
+                    "rgba(255,255,255,0.3)";
+
+
+                nextCtx.fillRect(
+                    offsetX + x * blockSize + 3,
+                    offsetY + y * blockSize + 3,
+                    blockSize - 7,
+                    4
+                );
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* ================================
+   DRAW
+================================ */
+
+function draw() {
+
+    drawBoard();
+
+    drawPiece();
+
+}
+
+
+/* ================================
+   MESAJ
+================================ */
+
+function showMessage(
+    title,
+    text,
+    button
+) {
+
+    messageTitle.textContent =
+        title;
+
+    messageText.textContent =
+        text;
+
+    startButton.textContent =
+        button;
+
+    gameMessage.classList.remove(
+        "hidden"
+    );
+
+}
+
+
+function hideMessage() {
+
+    gameMessage.classList.add(
+        "hidden"
+    );
+
+}
+
+
+/* ================================
+   OYUNU BAŞLAT
+================================ */
+
+function startGame() {
+
+    if (gameOver) {
+
+        resetGame();
+
+    }
+
+
+    gameStarted = true;
+
+    gamePaused = false;
+
+    hideMessage();
+
+    initAudio();
+
+}
+
+
+/* ================================
+   YENİ OYUN
+================================ */
+
+function resetGame() {
+
+    createBoard();
+
+    score = 0;
+
+    level = 1;
+
+    lines = 0;
+
+    combo = 0;
+
+    gameStarted = false;
+
+    gamePaused = false;
+
+    gameOver = false;
+
+    dropCounter = 0;
+
+    dropInterval = 800;
+
+    currentPiece = null;
+
+    nextPiece = randomPiece();
+
+    spawnPiece();
+
+    updateScore();
+
+    showMessage(
+        "TETRIS",
+        "Oyuna başlamak için bir tuşa bas.",
+        "OYUNA BAŞLA"
+    );
+
+}
+
+
+/* ================================
+   GAME OVER
+================================ */
+
+function endGame() {
+
+    gameOver = true;
+
+    gameStarted = false;
+
+
+    playSound(
+        100,
+        0.4
+    );
+
+
+    showMessage(
+        "OYUN BİTTİ",
+        "Skorun: " + score,
+        "TEKRAR OYNA"
+    );
+
+}
+
+
+/* ================================
+   PAUSE
+================================ */
+
+function togglePause() {
+
+    if (
+        !gameStarted ||
+        gameOver
+    ) {
+        return;
+    }
+
+
+    gamePaused =
+        !gamePaused;
+
+
+    if (gamePaused) {
+
+        showMessage(
+            "DURAKLATILDI",
+            "Devam etmek için P tuşuna bas.",
+            "DEVAM ET"
+        );
+
+    } else {
+
+        hideMessage();
+
+    }
+
+}
+
+
+/* ================================
+   KLAVYE
+================================ */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key === "ArrowLeft" ||
+            event.key === "ArrowRight" ||
+            event.key === "ArrowDown" ||
+            event.key === "ArrowUp" ||
+            event.code === "Space"
+        ) {
+
+            event.preventDefault();
+
+        }
+
+
+        if (!gameStarted) {
+
+            if (
+                event.key.startsWith("Arrow") ||
+                event.code === "Space"
+            ) {
+
+                startGame();
+
+            }
+
+        }
+
+
+        if (event.key === "ArrowLeft") {
+
+            moveHorizontal(-1);
+
+        }
+
+
+        if (event.key === "ArrowRight") {
+
+            moveHorizontal(1);
+
+        }
+
+
+        if (event.key === "ArrowDown") {
+
+            moveDown();
+
+        }
+
+
+        if (event.key === "ArrowUp") {
+
+            rotatePiece();
+
+        }
+
+
+        if (event.code === "Space") {
+
+            hardDrop();
+
+        }
+
+
+        if (
+            event.key.toLowerCase() === "p"
+        ) {
+
+            togglePause();
+
+        }
+
+
+        if (
+            event.key.toLowerCase() === "r"
+        ) {
+
+            resetGame();
+
+        }
+
+    }
+);
+
+
+/* ================================
+   MOBİL KONTROLLER
+================================ */
+
+document
+    .querySelectorAll("[data-action]")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            function() {
+
+                const action =
+                    this.dataset.action;
+
+
+                if (!gameStarted) {
+
+                    startGame();
+
+                }
+
+
+                if (action === "left") {
+
+                    moveHorizontal(-1);
+
+                }
+
+
+                if (action === "right") {
+
+                    moveHorizontal(1);
+
+                }
+
+
+                if (action === "down") {
+
+                    moveDown();
+
+                }
+
+
+                if (action === "rotate") {
+
+                    rotatePiece();
+
+                }
+
+
+                if (action === "drop") {
+
+                    hardDrop();
+
+                }
+
+            }
+        );
+
+    });
+
+
+/* ================================
+   BAŞLAT BUTONU
+================================ */
+
+startButton.addEventListener(
+    "click",
+    function() {
+
+        initAudio();
+
+        startGame();
+
+    }
+);
+
+
+/* ================================
+   YENİDEN BAŞLAT
+================================ */
+
+restartButton.addEventListener(
+    "click",
+    function() {
+
+        resetGame();
+
+    }
+);
+
+
+/* ================================
+   OYUN DÖNGÜSÜ
+================================ */
+
+function update(time = 0) {
+
+    const deltaTime =
+        time - lastTime;
+
+    lastTime = time;
+
+
+    if (
+        gameStarted &&
+        !gamePaused &&
+        !gameOver
+    ) {
+
+        dropCounter +=
+            deltaTime;
+
+
+        if (
+            dropCounter >
+            dropInterval
+        ) {
+
+            moveDown();
+
+            dropCounter = 0;
+
+        }
+
+    }
+
+
+    draw();
+
+    requestAnimationFrame(update);
+
+}
+
+
+/* ================================
+   BAŞLANGIÇ
+================================ */
+
+resetGame();
+
+update();
+
+</script>
+
+</body>
+
+</html>

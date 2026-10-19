@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tıklama Hızı | Oyun Merkezi</title>
+    <link rel="stylesheet" href="oyunlar.css">
+</head>
+
+<body>
+
+    <div class="ana-menu-bar ana-menu-bar--game">
+        <a class="ana-menu-btn" href="../index.html">&#8592; ANA MENU</a>
+    </div>
+
+    <main class="game-shell">
+        <div class="topline">
+            <a class="brand-mark" href="../index.html">Proje Merkezi</a>
+            <a class="back-link" href="proje1.html">← Oyunlar</a>
+        </div>
+
+        <section class="game-panel" aria-labelledby="game-title">
+            <p class="eyebrow">Oyun 02 · Refleks</p>
+            <h1 id="game-title">Tıklama Hızı</h1>
+            <p class="game-lead">Başlamak için düğmeye bas. 10 saniyede olabildiğince hızlı tıkla.</p>
+
+            <div class="click-score" id="score" aria-live="polite">0</div>
+            <button class="button-primary click-button" id="tap-button" type="button">Başla ve tıkla</button>
+            <progress class="timer-progress" id="timer-progress" max="10" value="10" aria-label="Kalan süre"></progress>
+
+            <div class="stats-row">
+                <div class="stat"><span class="stat-label">Kalan süre</span><span class="stat-value"><span id="time-left">10</span> sn</span></div>
+                <div class="stat"><span class="stat-label">En iyi skor</span><span class="stat-value" id="best-score">0</span></div>
+            </div>
+            <p id="feedback" class="feedback" aria-live="polite">Hazır olduğunda başla.</p>
+            <div class="action-row">
+                <button class="button-secondary" id="restart-button" type="button">Baştan başla</button>
+            </div>
+        </section>
+
+        <a class="menu-return" href="proje1.html">← Tüm oyunlara dön</a>
+    </main>
+
+    <script>
+        const tapButton = document.getElementById("tap-button");
+        const scoreDisplay = document.getElementById("score");
+        const timeDisplay = document.getElementById("time-left");
+        const bestDisplay = document.getElementById("best-score");
+        const progress = document.getElementById("timer-progress");
+        const feedback = document.getElementById("feedback");
+        let score = 0;
+        let timeLeft = 10;
+        let timerId = null;
+        let running = false;
+        let bestScore = 0;
+
+        try {
+            bestScore = Number(localStorage.getItem("clickGameBest")) || 0;
+        } catch {
+            bestScore = 0;
+        }
+        bestDisplay.textContent = bestScore;
+
+        function finishGame() {
+            clearInterval(timerId);
+            timerId = null;
+            running = false;
+            tapButton.disabled = true;
+            feedback.textContent = `Süre doldu! Skorun: ${score}.`;
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestDisplay.textContent = bestScore;
+                feedback.textContent += " Yeni rekor!";
+                try {
+                    localStorage.setItem("clickGameBest", String(bestScore));
+                } catch {
+                    feedback.textContent += " Rekor bu oturumda saklandı.";
+                }
+            }
+        }
+
+        tapButton.addEventListener("click", () => {
+            if (!running) {
+                running = true;
+                feedback.textContent = "Devam et, süre akıyor!";
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    timeDisplay.textContent = timeLeft;
+                    progress.value = timeLeft;
+                    if (timeLeft <= 0) finishGame();
+                }, 1000);
+            }
+
+            if (timeLeft > 0) {
+                score++;
+                scoreDisplay.textContent = score;
+            }
+        });
+
+        document.getElementById("restart-button").addEventListener("click", () => {
+            clearInterval(timerId);
+            score = 0;
+            timeLeft = 10;
+            running = false;
+            scoreDisplay.textContent = score;
+            timeDisplay.textContent = timeLeft;
+            progress.value = timeLeft;
+            feedback.textContent = "Hazır olduğunda başla.";
+            tapButton.disabled = false;
+            tapButton.focus();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistem Kontrol | Kalkanlar</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="ana-menu-bar">
+    <a class="ana-menu-btn" href="../index.html">&#8592; ANA MENU</a>
+</div>
+    <div class="panel">
+        <h1>KALKAN KONTROLÜ</h1>
+        <nav>
+            <a href="index.html">Çıkış Yap</a> |
+            <a href="personel.html">Personel Verileri</a>
+        </nav>
+        <hr>
+        
+        <div id="kalkanDurumu" class="durum-kutusu kirmizi">
+            KALKANLAR DEVRE DIŞI
+        </div>
+
+        <button onclick="kalkanYonet('ac')">Kalkanları AÇ</button>
+        <button onclick="kalkanYonet('kapat')">Kalkanları KAPAT</button>
+        <button onclick="kalkanYonet('yokoldu')">Saldırıya Uğradık!</button>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,336 @@
+/* GENEL AYARLAR */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+/* =========================
+   ANA MENÜ BUTONU
+   ========================= */
+
+.ana-menu-bar {
+    max-width: 1100px;
+    margin: 20px auto -10px;
+    padding: 0 20px;
+}
+
+.ana-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border-radius: 30px;
+    color: white;
+    background-color: #1a237e;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: bold;
+    box-shadow: 0 6px 16px rgba(26, 35, 126, 0.25);
+    transition: 0.3s;
+}
+
+.ana-menu-btn:hover {
+    background-color: #3949ab;
+    transform: translateY(-2px);
+    box-shadow: 0 9px 20px rgba(26, 35, 126, 0.35);
+}
+
+
+/* =========================
+   ÜST BİLGİ VE MENÜ
+   ========================= */
+
+.site-header {
+    background-color: #1a237e;
+    color: white;
+    text-align: center;
+    padding: 25px 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.site-header h1 {
+    margin: 0 0 15px 0;
+    font-size: 36px;
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+nav a {
+    color: #ffd54f;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 18px;
+    transition: 0.3s;
+}
+
+nav a:hover {
+    color: white;
+}
+
+/* =========================
+   ANA İÇERİK
+   ========================= */
+
+main {
+    display: flex;
+    align-items: flex-start;
+
+    max-width: 1100px;
+    margin: 35px auto;
+
+    gap: 25px;
+    padding: 0 20px;
+}
+
+/* =========================
+   MAKALE
+   ========================= */
+
+article {
+    flex: 3;
+
+    background-color: white;
+
+    padding: 35px;
+
+    border-radius: 12px;
+
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* MAKALE BAŞLIĞI */
+
+.article-header {
+    background: transparent;
+    color: #333;
+
+    padding: 0;
+
+    box-shadow: none;
+
+    text-align: left;
+}
+
+.article-header h2 {
+    color: #1a237e;
+
+    font-size: 30px;
+
+    margin: 0 0 10px 0;
+
+    line-height: 1.3;
+}
+
+.article-header p {
+    color: #777;
+
+    font-size: 14px;
+
+    margin-bottom: 25px;
+}
+
+/* =========================
+   RESİM
+   ========================= */
+
+figure {
+    margin: 0 0 25px 0;
+    padding: 0;
+}
+
+figure img {
+    display: block;
+
+    width: 100%;
+    height: auto;
+
+    border-radius: 10px;
+}
+
+figcaption {
+    text-align: center;
+
+    font-style: italic;
+
+    color: #777;
+
+    font-size: 14px;
+
+    margin-top: 10px;
+}
+
+/* =========================
+   METİNLER
+   ========================= */
+
+article > p {
+    font-size: 17px;
+
+    color: #444;
+
+    margin-bottom: 30px;
+}
+
+strong {
+    color: #1a237e;
+}
+
+/* =========================
+   ALT BÖLÜMLER
+   ========================= */
+
+section {
+    margin-top: 30px;
+
+    padding-top: 20px;
+
+    border-top: 1px solid #e0e0e0;
+}
+
+section h3 {
+    color: #1a237e;
+
+    font-size: 23px;
+
+    margin: 0 0 10px 0;
+}
+
+section p {
+    color: #444;
+
+    font-size: 16px;
+
+    margin: 0;
+}
+
+/* =========================
+   YAN ÇUBUK
+   ========================= */
+
+aside {
+    flex: 1;
+
+    background-color: #e3f2fd;
+
+    padding: 25px;
+
+    border-radius: 10px;
+
+    border-left: 4px solid #1a237e;
+
+    height: fit-content;
+
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+aside h3 {
+    color: #1a237e;
+
+    margin-top: 0;
+
+    font-size: 22px;
+}
+
+aside p {
+    color: #444;
+
+    font-size: 15px;
+
+    line-height: 1.6;
+}
+
+/* =========================
+   FOOTER
+   ========================= */
+
+footer {
+    background-color: #1a237e;
+
+    color: white;
+
+    text-align: center;
+
+    padding: 18px;
+
+    margin-top: 40px;
+}
+
+footer p {
+    margin: 0;
+
+    font-size: 14px;
+}
+
+/* =========================
+   TABLET
+   ========================= */
+
+@media (max-width: 800px) {
+
+    main {
+        flex-direction: column;
+    }
+
+    article,
+    aside {
+        width: 100%;
+    }
+
+    .site-header h1 {
+        font-size: 30px;
+    }
+
+    .article-header h2 {
+        font-size: 25px;
+    }
+}
+
+/* =========================
+   TELEFON
+   ========================= */
+
+@media (max-width: 500px) {
+
+    .site-header {
+        padding: 20px 15px;
+    }
+
+    .site-header h1 {
+        font-size: 25px;
+    }
+
+    nav {
+        gap: 15px;
+    }
+
+    nav a {
+        font-size: 16px;
+    }
+
+    main {
+        margin: 20px auto;
+        padding: 0 12px;
+    }
+
+    article {
+        padding: 20px;
+    }
+
+    .article-header h2 {
+        font-size: 22px;
+    }
+}

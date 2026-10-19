@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refleks Testi | Oyun Merkezi</title>
+    <link rel="stylesheet" href="oyunlar.css">
+</head>
+
+<body>
+
+    <div class="ana-menu-bar ana-menu-bar--game">
+        <a class="ana-menu-btn" href="../index.html">&#8592; ANA MENU</a>
+    </div>
+
+    <main class="game-shell">
+        <div class="topline">
+            <a class="brand-mark" href="../index.html">Proje Merkezi</a>
+            <a class="back-link" href="proje1.html">← Oyunlar</a>
+        </div>
+
+        <section class="game-panel" aria-labelledby="game-title">
+            <p class="eyebrow">Oyun 05 · Refleks</p>
+            <h1 id="game-title">Refleks Testi</h1>
+            <p class="game-lead">Başlat'a bas, sinyal yeşile dönünce olabildiğince hızlı dokun.</p>
+
+            <button class="reaction-pad" id="reaction-pad" type="button">Başlat</button>
+            <p class="feedback" id="feedback" aria-live="polite">Hazır olduğunda başlayabilirsin.</p>
+
+            <div class="stats-row">
+                <div class="stat"><span class="stat-label">Son tepki</span><span class="stat-value" id="last-time">—</span></div>
+                <div class="stat"><span class="stat-label">En iyi tepki</span><span class="stat-value" id="best-time">—</span></div>
+            </div>
+        </section>
+
+        <a class="menu-return" href="proje1.html">← Tüm oyunlara dön</a>
+    </main>
+
+    <script>
+        const pad = document.getElementById("reaction-pad");
+        const feedback = document.getElementById("feedback");
+        const lastTimeDisplay = document.getElementById("last-time");
+        const bestTimeDisplay = document.getElementById("best-time");
+        let phase = "idle";
+        let signalTimeout;
+        let signalTime;
+        let bestTime = null;
+
+        try {
+            const savedTime = Number(localStorage.getItem("reactionGameBest"));
+            if (savedTime > 0) bestTime = savedTime;
+        } catch {
+            bestTime = null;
+        }
+
+        if (bestTime !== null) bestTimeDisplay.textContent = `${bestTime} ms`;
+
+        function beginRound() {
+            phase = "waiting";
+            pad.className = "reaction-pad is-waiting";
+            pad.textContent = "Bekle...";
+            feedback.textContent = "Yeşil sinyali görmeden basma.";
+            signalTimeout = setTimeout(() => {
+                phase = "go";
+                signalTime = performance.now();
+                pad.className = "reaction-pad is-go";
+                pad.textContent = "ŞİMDİ!";
+                feedback.textContent = "Şimdi dokun!";
+            }, 1500 + Math.random() * 2500);
+        }
+
+        pad.addEventListener("click", () => {
+            if (phase === "idle" || phase === "result") {
+                beginRound();
+                return;
+            }
+
+            if (phase === "waiting") {
+                clearTimeout(signalTimeout);
+                phase = "result";
+                pad.className = "reaction-pad is-result";
+                pad.textContent = "Tekrar dene";
+                feedback.textContent = "Erken bastın! Sinyali beklemen gerekiyor.";
+                return;
+            }
+
+            const reactionTime = Math.round(performance.now() - signalTime);
+            phase = "result";
+            lastTimeDisplay.textContent = `${reactionTime} ms`;
+            pad.className = "reaction-pad is-result";
+            pad.textContent = "Tekrar dene";
+            feedback.textContent = `Tepki süren ${reactionTime} ms.`;
+
+            if (bestTime === null || reactionTime < bestTime) {
+                bestTime = reactionTime;
+                bestTimeDisplay.textContent = `${bestTime} ms`;
+                feedback.textContent += " Yeni rekor!";
+                try {
+                    localStorage.setItem("reactionGameBest", String(bestTime));
+                } catch {
+                    feedback.textContent += " Rekor bu oturumda saklandı.";
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

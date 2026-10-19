@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Proje Merkezi | Oyun, Şehir ve Teknoloji</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        :root {
+            color-scheme: light;
+            --ink: #182326;
+            --muted: #5e6b6d;
+            --paper: #f3f6f3;
+            --line: #dce4df;
+            --coral: #ef684f;
+            --teal: #168b80;
+            --card-bg: #ffffff;
+            --shadow: rgba(24, 35, 38, 0.1);
+        }
+
+        /* KARANLIK MOD DEĞİŞKENLERİ */
+        body.dark-mode {
+            --ink: #ecf0f1;
+            --muted: #bdc3c7;
+            --paper: #1a1a1a;
+            --line: #333;
+            --coral: #ff7e67;
+            --teal: #2ab7ca;
+            --card-bg: #252525;
+            --shadow: rgba(0, 0, 0, 0.4);
+            background-image: radial-gradient(#333 0.7px, transparent 0.7px);
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--ink);
+            background-color: var(--paper);
+            background-image: radial-gradient(#d5e1dc 0.7px, transparent 0.7px);
+            background-size: 18px 18px;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        .ticker {
+            overflow: hidden;
+            min-height: 46px;
+            color: #fff;
+            background: var(--ink);
+        }
+
+        .ticker-track {
+            display: flex;
+            width: max-content;
+            min-height: 46px;
+            animation: ticker-scroll 24s linear infinite;
+        }
+
+        .ticker:hover .ticker-track {
+            animation-play-state: paused;
+        }
+
+        .ticker-group {
+            display: flex;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: space-between;
+            width: 100vw;
+            min-width: max-content;
+            padding: 0 20px;
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .ticker-separator { color: var(--coral); }
+        .ticker-emojis { color: var(--lime, #d4ed72); font-size: 17px; }
+
+        @keyframes ticker-scroll {
+            to { transform: translateX(-50%); }
+        }
+
+        .container {
+            width: min(1080px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 54px 0 64px;
+        }
+
+        .ust-bilgi {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 42px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .ust-bilgi::before {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--coral);
+            content: "";
+        }
+
+        .baslik-alani {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 28px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .baslik-sol {
+            flex: 1;
+        }
+
+        /* TEMA DEĞİŞTİRME BUTONU */
+        .tema-buton {
+            background: var(--card-bg);
+            border: 2px solid var(--line);
+            color: var(--ink);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px var(--shadow);
+        }
+
+        .tema-buton:hover {
+            transform: rotate(15deg) scale(1.1);
+            border-color: var(--coral);
+            box-shadow: 0 6px 15px rgba(239, 104, 79, 0.3);
+        }
+
+        body.dark-mode .tema-buton {
+            background: #333;
+            border-color: #555;
+        }
+
+        h1 {
+            max-width: 620px;
+            margin: 0;
+            font-size: 52px;
+            line-height: 1.1;
+            background: linear-gradient(90deg, var(--ink) 0%, var(--teal) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .aciklama {
+            max-width: 350px;
+            margin: 0 0 4px;
+            color: var(--muted);
+            font-size: 18px;
+            line-height: 1.6;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .projeler {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .proje {
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--card-bg);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .proje:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 50px var(--shadow);
+            border-color: var(--teal);
+        }
+
+        .proje-gorsel {
+            display: grid;
+            min-height: 178px;
+            place-items: center;
+            overflow: hidden;
+            background: #dbe7df;
+            position: relative;
+        }
+
+        .proje-gorsel img {
+            display: block;
+            width: 100%;
+            height: 178px;
+            object-fit: cover;
+            transition: transform 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .proje:hover .proje-gorsel img { 
+            transform: scale(1.1); 
+            filter: brightness(1.1);
+        }
+
+        .oyun-gorseli {
+            color: #fff;
+            background: linear-gradient(115deg, #182326 0 48%, #168b80 48% 72%, #ef684f 72%);
+            font-size: 62px;
+        }
+
+        .uzay-gorseli {
+    color: #00ff00;
+    background-color: #050505;
+    background-image:
+        radial-gradient(#00ff00 0.6px, transparent 0.6px),
+        radial-gradient(#00ff00 0.6px, transparent 0.6px);
+    background-position: 0 0, 22px 22px;
+    background-size: 44px 44px;
+    font-family: Courier New, Courier, monospace;
+ font-size: 44px;
+ letter-spacing: 3px;
+ text-shadow: 0 0 12px rgba(0, 255, 0, 0.65);
+}
+
+.proje-icerik { padding: 20px 22px 22px; }
+
+        .kategori {
+            margin: 0 0 8px;
+            color: var(--teal);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .proje h2 { margin: 0; font-size: 24px; }
+
+        .proje p:not(.kategori) {
+            min-height: 48px;
+            margin: 8px 0 16px;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .buton {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 44px;
+            padding: 0 20px;
+            border-radius: 8px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--ink) 0%, #2c3e50 100%);
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .buton:hover { 
+            gap: 18px; 
+            background: linear-gradient(135deg, var(--teal) 0%, #1abc9c 100%);
+            box-shadow: 0 8px 25px rgba(22, 139, 128, 0.4);
+            transform: translateY(-2px);
+        }
+
+        a:focus-visible {
+            outline: 3px solid var(--coral);
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 680px) {
+            .container {
+                width: min(100% - 28px, 520px);
+                padding: 30px 0 40px;
+            }
+
+            .ust-bilgi { margin-bottom: 28px; }
+
+            .baslik-alani {
+                align-items: start;
+                flex-direction: column;
+                gap: 12px;
+                margin-bottom: 22px;
+            }
+
+            h1 { font-size: 38px; }
+            .aciklama { font-size: 16px; }
+            .projeler { grid-template-columns: 1fr; gap: 14px; }
+
+            .proje-gorsel,
+            .proje-gorsel img {
+                min-height: 155px;
+                height: 155px;
+            }
+
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { transition-duration: 0.01ms !important; }
+            .ticker-track { animation: none; }
+            .ticker-group[aria-hidden="true"] { display: none; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="ticker" role="img" aria-label="Muhammednsmz / EML / Site | Roket, oyun, şehir ve robot emojileri">
+        <div class="ticker-track" aria-hidden="true">
+            <div class="ticker-group">
+                <span>Muhammednsmz / EML / Site</span>
+                <span class="ticker-separator">|</span>
+                <span class="ticker-emojis">🚀 🎮 🌆 🤖</span>
+                <span class="ticker-separator">|</span>
+            </div>
+            <div class="ticker-group" aria-hidden="true">
+                <span>Muhammednsmz / EML / Site</span>
+                <span class="ticker-separator">|</span>
+                <span class="ticker-emojis">🚀 🎮 🌆 🤖</span>
+                <span class="ticker-separator">|</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <div class="ust-bilgi">Kişisel proje koleksiyonu</div>
+
+        <header class="baslik-alani">
+            <div class="baslik-sol">
+                <h1>Merhaba, keşfetmeye başlayalım.</h1>
+                <p class="aciklama">Oyunlardan şehir keşfine, Mars'tan yeni teknolojilere uzanan projelerim.</p>
+            </div>
+            <button id="tema-degistir" class="tema-buton" title="Temayı Değiştir">🌙</button>
+        </header>
+
+        <div class="projeler">
+            <article class="proje">
+                <div class="proje-gorsel oyun-gorseli" aria-hidden="true">🎮</div>
+                <div class="proje-icerik">
+                    <p class="kategori">Oyna · 6 oyun</p>
+                    <h2>Oyun Merkezi</h2>
+                    <p>Hafızanı, reflekslerini ve şansını kısa oyunlarda dene.</p>
+                    <a href="proje01/proje1.html" class="buton">Oyunları keşfet <span aria-hidden="true">→</span></a>
+                </div>
+            </article>
+
+            <article class="proje">
+                <div class="proje-gorsel">
+                    <img src="proje07/gorseller/anasayfa.jpg" alt="New York'un gökdelenleri">
+                </div>
+                <div class="proje-icerik">
+                    <p class="kategori">Oyna · retro</p>
+                    <h2>Retro Oyunları</h2>
+                    <p>Eski retro oyunları oyna.</p>
+                    <a href="proje07/retro.html" class="buton">Oyunları keşfet <span aria-hidden="true">→</span></a>
+                </div>
+            </article>
+
+            <article class="proje">
+                <div class="proje-gorsel">
+                    <img src="proje02/sehirler_resimi/newyork.jpg" alt="New York'un gökdelenleri">
+                </div>
+                <div class="proje-icerik">
+                    <p class="kategori">Şehir rehberi</p>
+                    <h2>New York</h2>
+                    <p>Şehrin simge yapılarını ve mahallelerini yakından tanı.</p>
+                    <a href="proje02/sehir.html" class="buton">Şehri keşfet <span aria-hidden="true">→</span></a>
+                </div>
+            </article>
+
+            <article class="proje">
+                <div class="proje-gorsel">
+                    <img src="proje08/gorseller/ejderha.jpg" alt="Sihir Akademisi Şatosu">
+                </div>
+
+                <div class="proje-icerik">
+                    <p class="kategori">Sihir Akademisi</p>
+                    <h2>Büyücülük Dünyası</h2>
+                    <p>Gizemli şatoyu, büyücüleri ve sihirli dünyayı keşfet.</p>
+                    <a href="proje08/gerekli.html" class="buton">
+                        Akademiyi keşfet <span aria-hidden="true">→</span>
+                    </a>
+                </div>
+            </article>
+
+            <article class="proje">
+                <div class="proje-gorsel">
+                    <img src="proje03/anasayfa.jpg" alt="Mars yüzeyinin kızıl manzarası">
+                </div>
+                <div class="proje-icerik">
+                    <p class="kategori">Uzay · Galeri · Başvuru</p>
+                    <h2>Mars Keşfi</h2>
+                    <p>Kızıl gezegenin dünyasına göz at, uzay galerisini gez.</p>
+                    <a href="proje03/mars.html" class="buton">Mars'a git <span aria-hidden="true">→</span></a>
+                </div>
+            </article>
+
+            <article class="proje">
+                <div class="proje-gorsel">
+                    <img src="proje04/gorseller/yapayzeka.jpg" alt="Yapay zekâyı temsil eden görsel">
+                </div>
+                <div class="proje-icerik">
+                    <p class="kategori">Teknoloji · Makale</p>
+                    <h2>Yapay Zekâ</h2>
+                    <p>Yapay zekânın tıp ve robotik alanlarındaki etkisini oku.</p>
+                    <a href="proje4/proje04.html" class="buton">Makaleyi oku <span aria-hidden="true">→</span></a>
+                </div>
+            </article>
+
+            <article class="proje">
+                <div class="proje-gorsel">
+                    <img src="proje05/anasayfa.jpg" alt="Süper kahraman akademisinin aktif kahramanlarından biri">
+                </div>
+                <div class="proje-icerik">
+                    <p class="kategori">Kahramanlar · Akademi</p>
+                    <h2>Süper Kahraman Akademisi</h2>
+                    <p>Kahraman kadrosunu keşfet ve akademiye katılmaya hazırlan.</p>
+                    <a href="proje05/index.html" class="buton">Akademiye gir <span aria-hidden="true">→</span></a>
+                </div>
+
+            </article>
+
+                        <article class="proje">
+                <div class="proje-gorsel">
+                    <img src="proje06/gorseller/anasayfa.jpg" alt="Uzaya gezi için bilet almayı unutma">
+                </div>
+                <div class="proje-icerik">
+                    <p class="kategori">Uzay · Gezi</p>
+                    <h2>Uzay Gezisi</h2>
+                    <p>Mükemmel muavinlerimiz ile uzay gemisi ile tur.</p>
+                    <a href="proje06/index.html" class="buton">Geziye Katıl <span aria-hidden="true">→</span></a>
+                </div>
+            </article>
+
+                        <article class="proje">
+                <div class="proje-gorsel uzay-gorseli" aria-hidden="true">&gt;_</div>
+                <div class="proje-icerik">
+                    <p class="kategori">JavaScript · Terminal</p>
+                    <h2>Uzay Gemisi Kontrol</h2>
+                    <p>Şifreli giriş, kalkan kontrolü ve oksijen hesaplayıcı ile JS mantığını öğren.</p>
+                    <a href="proje09/index.html" class="buton">Sisteme gir <span aria-hidden="true">→</span></a>
+                </div>
+            </article>
+
+            <article class="proje">
+                <div class="proje-gorsel uzay-gorseli" aria-hidden="true">🔓</div>
+                <div class="proje-icerik">
+                    <p class="kategori">JavaScript · Güvenlik</p>
+                    <h2>Hacker Terminali</h2>
+                    <p>Sahte şifre kırma simülasyonu, ilerleme çubuğu ve sistem logları.</p>
+                    <a href="proje10/index.html" class="buton">Terminali aç <span aria-hidden="true">→</span></a>
+                </div>
+            </article>
+
+            <article class="proje">
+                <div class="proje-gorsel">
+                    <img src="proje11/poster.jpg" alt="Sinema afişleri kolajı" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display:flex;justify-content:center;align-items:center;height:100%;font-size:60px;\'>🎬</div>'">
+                </div>
+                <div class="proje-icerik">
+                    <p class="kategori">API · TMDB</p>
+                    <h2>SineEvren</h2>
+                    <p>Canlı API bağlantısı ile dünyadaki en popüler filmleri listeleyen sinema platformu.</p>
+                    <a href="proje11/index.html" class="buton">Filmleri Keşfet <span aria-hidden="true">→</span></a>
+                </div>
+            </article>
+
+        </div>
+
+    </div>
+
+    <!-- FOOTER BÖLÜMÜ -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Muhammednsmz | EML Proje Portfolyosu</p>
+            <div class="footer-links">
+                <a href="#">Başa Dön</a>
+                <span class="separator">•</span>
+                <a href="mailto:iletisim@ornek.com">İletişim</a>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        .site-footer {
+            background-color: var(--ink);
+            color: #fff;
+            padding: 40px 0;
+            margin-top: 80px;
+            text-align: center;
+        }
+
+        .footer-content {
+            width: min(1080px, calc(100% - 40px));
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .footer-content p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+        }
+
+        .footer-links a {
+            color: var(--coral);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #fff;
+        }
+
+        .footer-links .separator {
+            color: var(--muted);
+        }
+    </style>
+
+    <script>
+        localStorage.removeItem("siteChatName");
+        sessionStorage.removeItem("siteChatName");
+        sessionStorage.removeItem("siteChatToken");
+
+        // TEMA DEĞİŞTİRME MANTIĞI
+        const temaButon = document.getElementById('tema-degistir');
+        const body = document.body;
+
+        // Kaydedilmiş temayı kontrol et
+        const kaydedilenTema = localStorage.getItem('tema');
+        if (kaydedilenTema === 'dark') {
+            body.classList.add('dark-mode');
+            temaButon.textContent = '☀️';
+        }
+
+        temaButon.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            const karanlikMod = body.classList.contains('dark-mode');
+            
+            // İkonu güncelle
+            temaButon.textContent = karanlikMod ? '☀️' : '🌙';
+            
+            // Tercihini kaydet
+            localStorage.setItem('tema', karanlikMod ? 'dark' : 'light');
+        });
+
+        // BAŞA DÖN LİNKİ
+        document.querySelector('.footer-links a[href="#"]').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+
+</body>
+
+</html>

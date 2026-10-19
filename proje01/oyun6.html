@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hızlı Matematik | Oyun Merkezi</title>
+    <link rel="stylesheet" href="oyunlar.css">
+</head>
+
+<body>
+
+    <div class="ana-menu-bar ana-menu-bar--game">
+        <a class="ana-menu-btn" href="../index.html">&#8592; ANA MENU</a>
+    </div>
+
+    <main class="game-shell">
+        <div class="topline">
+            <a class="brand-mark" href="../index.html">Proje Merkezi</a>
+            <a class="back-link" href="proje1.html">← Oyunlar</a>
+        </div>
+
+        <section class="game-panel" aria-labelledby="game-title">
+            <p class="eyebrow">Oyun 06 · Zihin</p>
+            <h1 id="game-title">Hızlı Matematik</h1>
+            <p class="game-lead">Cevabını gönderince 30 saniyelik tur başlar. Doğru işlemleri art arda çöz.</p>
+
+            <div class="math-problem" id="question" aria-live="polite"></div>
+            <form id="answer-form">
+                <div class="form-row">
+                    <input id="answer" type="number" min="0" max="500" step="1" inputmode="numeric" placeholder="Cevabın" aria-label="İşlemin cevabı" required>
+                    <button class="button-primary" type="submit">Yanıtla</button>
+                </div>
+            </form>
+
+            <progress class="timer-progress" id="timer-progress" max="30" value="30" aria-label="Kalan süre"></progress>
+            <p class="feedback" id="feedback" aria-live="polite">İlk cevabını girince süre başlayacak.</p>
+
+            <div class="stats-row round-score">
+                <div class="stat"><span class="stat-label">Doğru</span><span class="stat-value" id="score">0</span></div>
+                <div class="stat"><span class="stat-label">Süre</span><span class="stat-value"><span id="time-left">30</span> sn</span></div>
+                <div class="stat"><span class="stat-label">Rekor</span><span class="stat-value" id="best-score">0</span></div>
+            </div>
+
+            <div class="action-row">
+                <button class="button-secondary" id="restart-game" type="button">Yeni tur</button>
+            </div>
+        </section>
+
+        <a class="menu-return" href="proje1.html">← Tüm oyunlara dön</a>
+    </main>
+
+    <script>
+        const form = document.getElementById("answer-form");
+        const answerInput = document.getElementById("answer");
+        const questionDisplay = document.getElementById("question");
+        const feedback = document.getElementById("feedback");
+        const progress = document.getElementById("timer-progress");
+        let solution;
+        let score = 0;
+        let timeLeft = 30;
+        let timerId = null;
+        let running = false;
+        let bestScore = 0;
+
+        try {
+            bestScore = Number(localStorage.getItem("mathGameBest")) || 0;
+        } catch {
+            bestScore = 0;
+        }
+        document.getElementById("best-score").textContent = bestScore;
+
+        function makeQuestion() {
+            const operations = ["+", "−", "×"];
+            const operation = operations[Math.floor(Math.random() * operations.length)];
+            let first = Math.floor(Math.random() * 12) + 2;
+            let second = Math.floor(Math.random() * 12) + 2;
+
+            if (operation === "−" && second > first) [first, second] = [second, first];
+            if (operation === "×") {
+                first = Math.floor(Math.random() * 10) + 2;
+                second = Math.floor(Math.random() * 10) + 2;
+            }
+
+            solution = operation === "+" ? first + second : operation === "−" ? first - second : first * second;
+            questionDisplay.textContent = `${first} ${operation} ${second} = ?`;
+        }
+
+        function finishGame() {
+            clearInterval(timerId);
+            timerId = null;
+            running = false;
+            answerInput.disabled = true;
+            form.querySelector("button").disabled = true;
+            feedback.textContent = `Süre bitti! ${score} doğru cevap verdin.`;
+
+            if (score > bestScore) {
+                bestScore = score;
+                document.getElementById("best-score").textContent = bestScore;
+                feedback.textContent += " Yeni rekor!";
+                try {
+                    localStorage.setItem("mathGameBest", String(bestScore));
+                } catch {
+                    feedback.textContent += " Rekor bu oturumda saklandı.";
+                }
+            }
+        }
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const answer = answerInput.valueAsNumber;
+            if (!Number.isInteger(answer) || answer < 0) return;
+
+            if (!running) {
+                running = true;
+                feedback.textContent = "Başladı! Hızlı ol.";
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    document.getElementById("time-left").textContent = timeLeft;
+                    progress.value = timeLeft;
+                    if (timeLeft <= 0) finishGame();
+                }, 1000);
+            }
+
+            if (!running) return;
+            if (answer === solution) {
+                score++;
+                document.getElementById("score").textContent = score;
+                feedback.textContent = "Doğru! Devam et.";
+            } else {
+                feedback.textContent = `Olmadı; cevap ${solution} olacaktı.`;
+            }
+
+            makeQuestion();
+            answerInput.value = "";
+            answerInput.focus();
+        });
+
+        document.getElementById("restart-game").addEventListener("click", () => {
+            clearInterval(timerId);
+            score = 0;
+            timeLeft = 30;
+            timerId = null;
+            running = false;
+            document.getElementById("score").textContent = score;
+            document.getElementById("time-left").textContent = timeLeft;
+            progress.value = timeLeft;
+            feedback.textContent = "İlk cevabını girince süre başlayacak.";
+            answerInput.disabled = false;
+            form.querySelector("button").disabled = false;
+            answerInput.value = "";
+            makeQuestion();
+            answerInput.focus();
+        });
+
+        makeQuestion();
+    </script>
+</body>
+
+</html>

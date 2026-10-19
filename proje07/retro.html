@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Retro Arcade</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <style>
+
+        /* =====================================
+           ANA SAYFA
+        ===================================== */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background:
+                radial-gradient(
+                    circle at center,
+                    #151515 0%,
+                    #050505 55%,
+                    #000 100%
+                );
+        }
+
+
+        /* =====================================
+           CRT EFEKTİ
+        ===================================== */
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+
+            pointer-events: none;
+
+            background:
+                repeating-linear-gradient(
+                    to bottom,
+                    rgba(255,255,255,0.025) 0px,
+                    rgba(255,255,255,0.025) 1px,
+                    transparent 1px,
+                    transparent 4px
+                );
+
+            z-index: 999;
+        }
+
+
+        /* =====================================
+           ARKA PLAN GRID
+        ===================================== */
+
+        .retro-bg {
+            position: fixed;
+            inset: 0;
+
+            pointer-events: none;
+
+            opacity: 0.18;
+
+            background-image:
+                linear-gradient(
+                    rgba(0,255,0,0.15) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(0,255,0,0.15) 1px,
+                    transparent 1px
+                );
+
+            background-size: 50px 50px;
+
+            transform:
+                perspective(500px)
+                rotateX(60deg)
+                scale(2);
+
+            transform-origin: center bottom;
+
+            animation: gridMove 8s linear infinite;
+        }
+
+        @keyframes gridMove {
+
+            from {
+                background-position:
+                    0 0,
+                    0 0;
+            }
+
+            to {
+                background-position:
+                    0 50px,
+                    50px 0;
+            }
+
+        }
+
+
+        /* =====================================
+           ANA CONTAINER
+        ===================================== */
+
+        .retro-container {
+
+            position: relative;
+
+            width: 94%;
+            max-width: 1100px;
+
+            margin: 0 auto;
+
+            padding:
+                55px
+                0
+                35px;
+
+            text-align: center;
+
+            z-index: 2;
+
+        }
+
+
+        /* =====================================
+           ÜST BİLGİ
+        ===================================== */
+
+        /* ANA MENU BUTONU */
+
+        .ana-menu-btn {
+
+            display: inline-block;
+
+            margin-bottom: 22px;
+
+            padding: 10px 22px;
+
+            color: #00ff00;
+
+            background: #111;
+
+            border: 2px solid #00ff00;
+
+            text-decoration: none;
+
+            font-weight: bold;
+
+            font-size: 15px;
+
+            letter-spacing: 1px;
+
+            transition: 0.2s;
+
+        }
+
+        .ana-menu-btn:hover {
+
+            color: #000;
+
+            background: #00ff00;
+
+            box-shadow: 0 0 15px #00ff00;
+
+        }
+
+
+        .top-bar {
+
+            display: flex;
+
+            justify-content:
+                space-between;
+
+            align-items: center;
+
+            margin-bottom: 25px;
+
+            color: #555;
+
+            font-size: 13px;
+
+            letter-spacing: 2px;
+
+        }
+
+        .status {
+
+            color: #00ff00;
+
+            text-shadow:
+                0 0 8px #00ff00;
+
+        }
+
+
+        /* =====================================
+           BAŞLIK
+        ===================================== */
+
+        .retro-title {
+
+            margin: 10px 0;
+
+            font-size: clamp(
+                48px,
+                8vw,
+                85px
+            );
+
+            font-weight: 900;
+
+            letter-spacing: 8px;
+
+            color: #00ff00;
+
+            text-shadow:
+
+                0 0 5px #00ff00,
+                0 0 15px #00ff00,
+                0 0 30px #00ff00,
+                0 0 60px rgba(
+                    0,
+                    255,
+                    0,
+                    0.7
+                );
+
+            animation:
+                titlePulse 2s
+                ease-in-out
+                infinite alternate;
+
+        }
+
+        @keyframes titlePulse {
+
+            from {
+                transform: scale(1);
+            }
+
+            to {
+                transform: scale(1.025);
+            }
+
+        }
+
+
+        .retro-subtitle {
+
+            margin: 10px auto 35px;
+
+            color: #888;
+
+            font-size: 17px;
+
+            letter-spacing: 2px;
+
+        }
+
+
+        /* =====================================
+           AYIRICI
+        ===================================== */
+
+        .neon-line {
+
+            width: 100%;
+
+            height: 2px;
+
+            margin:
+                0 auto
+                35px;
+
+            background: #00ff00;
+
+            box-shadow:
+                0 0 8px #00ff00,
+                0 0 20px #00ff00;
+
+        }
+
+
+        /* =====================================
+           OYUN SAYACI
+        ===================================== */
+
+        .game-counter {
+
+            margin-bottom: 25px;
+
+            color: #00ffff;
+
+            font-size: 14px;
+
+            letter-spacing: 3px;
+
+            text-shadow:
+                0 0 8px #00ffff;
+
+        }
+
+
+        /* =====================================
+           OYUN MENÜSÜ
+        ===================================== */
+
+        .game-menu {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 25px;
+
+        }
+
+
+        /* =====================================
+           OYUN KARTI
+        ===================================== */
+
+        .game-card {
+
+            position: relative;
+
+            min-height: 270px;
+
+            padding: 30px 25px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: center;
+
+            align-items: center;
+
+            overflow: hidden;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #151515,
+                    #080808
+                );
+
+            border:
+                2px solid #00ff00;
+
+            box-shadow:
+                0 0 10px
+                rgba(
+                    0,
+                    255,
+                    0,
+                    0.25
+                );
+
+            transition:
+                transform 0.3s,
+                box-shadow 0.3s,
+                border-color 0.3s;
+
+        }
+
+
+        /* ÜST ÇİZGİ */
+
+        .game-card::before {
+
+            content: "";
+
+            position: absolute;
+
+            top: 0;
+            left: -100%;
+
+            width: 100%;
+            height: 3px;
+
+            background: #00ffff;
+
+            box-shadow:
+                0 0 15px #00ffff;
+
+            transition: 0.5s;
+
+        }
+
+
+        .game-card:hover::before {
+
+            left: 100%;
+
+        }
+
+
+        /* KART HOVER */
+
+        .game-card:hover {
+
+            transform:
+                translateY(-10px)
+                scale(1.02);
+
+            border-color: #00ffff;
+
+            box-shadow:
+
+                0 0 10px #00ff00,
+                0 0 25px
+                rgba(
+                    0,
+                    255,
+                    0,
+                    0.5
+                ),
+                inset 0 0 25px
+                rgba(
+                    0,
+                    255,
+                    0,
+                    0.05
+                );
+
+        }
+
+
+        /* =====================================
+           OYUN NUMARASI
+        ===================================== */
+
+        .game-number {
+
+            position: absolute;
+
+            top: 12px;
+            left: 15px;
+
+            color: #333;
+
+            font-size: 12px;
+
+            letter-spacing: 2px;
+
+        }
+
+
+        /* =====================================
+           İKON
+        ===================================== */
+
+        .game-icon {
+
+            width: 85px;
+            height: 85px;
+
+            display: flex;
+
+            justify-content: center;
+            align-items: center;
+
+            margin-bottom: 15px;
+
+            font-size: 52px;
+
+            border:
+                2px solid #333;
+
+            background: #050505;
+
+            box-shadow:
+                inset 0 0 15px
+                rgba(
+                    0,
+                    255,
+                    0,
+                    0.1
+                );
+
+            transition:
+                transform 0.3s,
+                border-color 0.3s;
+
+        }
+
+
+        .game-card:hover .game-icon {
+
+            transform:
+                scale(1.1)
+                rotate(-3deg);
+
+            border-color: #00ff00;
+
+        }
+
+
+        /* =====================================
+           OYUN BAŞLIĞI
+        ===================================== */
+
+        .game-card h2 {
+
+            margin:
+                5px
+                0
+                10px;
+
+            color: #00ffff;
+
+            font-size: 25px;
+
+            letter-spacing: 2px;
+
+            text-shadow:
+                0 0 8px
+                rgba(
+                    0,
+                    255,
+                    255,
+                    0.6
+                );
+
+        }
+
+
+        .game-card p {
+
+            min-height: 42px;
+
+            margin:
+                0
+                0
+                20px;
+
+            color: #888;
+
+            font-size: 14px;
+
+            line-height: 1.6;
+
+        }
+
+
+        /* =====================================
+           OYNA BUTONU
+        ===================================== */
+
+        .play-button {
+
+            position: relative;
+
+            display: inline-block;
+
+            padding:
+                12px
+                35px;
+
+            color: #00ff00;
+
+            background: #000;
+
+            border:
+                2px solid #00ff00;
+
+            text-decoration: none;
+
+            font-weight: bold;
+
+            letter-spacing: 2px;
+
+            overflow: hidden;
+
+            transition:
+                color 0.25s,
+                background 0.25s,
+                box-shadow 0.25s;
+
+        }
+
+
+        .play-button:hover {
+
+            color: #000;
+
+            background: #00ff00;
+
+            box-shadow:
+
+                0 0 10px #00ff00,
+                0 0 25px #00ff00;
+
+        }
+
+
+        .play-button:active {
+
+            transform: scale(0.95);
+
+        }
+
+
+        /* =====================================
+           ALT BİLGİ
+        ===================================== */
+
+        .instructions {
+
+            margin-top: 35px;
+
+            padding: 15px;
+
+            color: #555;
+
+            border-top:
+                1px solid #222;
+
+            border-bottom:
+                1px solid #222;
+
+            font-size: 13px;
+
+            letter-spacing: 1px;
+
+        }
+
+
+        .instructions span {
+
+            color: #00ff00;
+
+        }
+
+
+        /* =====================================
+           FOOTER
+        ===================================== */
+
+        .footer {
+
+            margin-top: 35px;
+
+            color: #444;
+
+            font-size: 12px;
+
+            letter-spacing: 2px;
+
+        }
+
+
+        .footer strong {
+
+            color: #00ff00;
+
+        }
+
+
+        /* =====================================
+           MOBİL
+        ===================================== */
+
+        @media (max-width: 700px) {
+
+            .retro-container {
+
+                padding-top: 30px;
+
+            }
+
+
+            .top-bar {
+
+                font-size: 10px;
+
+            }
+
+
+            .retro-title {
+
+                font-size: 42px;
+
+                letter-spacing: 4px;
+
+            }
+
+
+            .retro-subtitle {
+
+                font-size: 14px;
+
+            }
+
+
+            .game-menu {
+
+                grid-template-columns: 1fr;
+
+                gap: 18px;
+
+            }
+
+
+            .game-card {
+
+                min-height: 240px;
+
+            }
+
+        }
+
+
+        /* =====================================
+           KÜÇÜK TELEFON
+        ===================================== */
+
+        @media (max-width: 400px) {
+
+            .retro-title {
+
+                font-size: 34px;
+
+            }
+
+
+            .game-card {
+
+                padding: 25px 15px;
+
+            }
+
+
+            .game-icon {
+
+                width: 70px;
+                height: 70px;
+
+                font-size: 42px;
+
+            }
+
+
+            .game-card h2 {
+
+                font-size: 21px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- ANİMASYONLU ARKA PLAN -->
+
+<div class="retro-bg"></div>
+
+
+<div class="retro-container">
+
+
+    <!-- ANA MENU -->
+
+    <a href="../index.html" class="ana-menu-btn">
+        &#9664; ANA MENU
+    </a>
+
+
+    <!-- ÜST BAR -->
+
+    <div class="top-bar">
+
+        <span>
+            SYSTEM // ARCADE-2026
+        </span>
+
+        <span class="status">
+            ● ONLINE
+        </span>
+
+    </div>
+
+
+    <!-- BAŞLIK -->
+
+    <h1 class="retro-title">
+        RETRO ARCADE
+    </h1>
+
+
+    <p class="retro-subtitle">
+        KLASİK OYUNLAR • SINIRSIZ EĞLENCE
+    </p>
+
+
+    <div class="neon-line"></div>
+
+
+    <!-- SAYI -->
+
+    <div class="game-counter">
+
+        [ 04 OYUN MEVCUT ]
+
+    </div>
+
+
+    <!-- OYUNLAR -->
+
+    <div class="game-menu">
+
+
+        <!-- PAC-MAN -->
+
+        <div class="game-card">
+
+            <span class="game-number">
+                GAME_01
+            </span>
+
+            <div class="game-icon">
+                🟡
+            </div>
+
+            <h2>
+                PAC-MAN
+            </h2>
+
+            <p>
+                Labirentte ilerle,
+                noktaları topla ve
+                hayaletlerden kaç!
+            </p>
+
+            <a
+                href="oyun1.html"
+                class="play-button"
+            >
+                ▶ OYNA
+            </a>
+
+        </div>
+
+
+        <!-- TETRIS -->
+
+        <div class="game-card">
+
+            <span class="game-number">
+                GAME_02
+            </span>
+
+            <div class="game-icon">
+                🟦
+            </div>
+
+            <h2>
+                TETRIS
+            </h2>
+
+            <p>
+                Blokları yerleştir,
+                satırları temizle ve
+                rekorunu kır!
+            </p>
+
+            <a
+                href="oyun2.html"
+                class="play-button"
+            >
+                ▶ OYNA
+            </a>
+
+        </div>
+
+
+        <!-- MARIO -->
+
+        <div class="game-card">
+
+            <span class="game-number">
+                GAME_03
+            </span>
+
+            <div class="game-icon">
+                🍄
+            </div>
+
+            <h2>
+                SUPER MARIO
+            </h2>
+
+            <p>
+                Engelleri aş,
+                coinleri topla ve
+                bölümün sonuna ulaş!
+            </p>
+
+            <a
+                href="oyun3.html"
+                class="play-button"
+            >
+                ▶ OYNA
+            </a>
+
+        </div>
+
+
+        <!-- SPACE INVADERS -->
+
+        <div class="game-card">
+
+            <span class="game-number">
+                GAME_04
+            </span>
+
+            <div class="game-icon">
+                👾
+            </div>
+
+            <h2>
+                SPACE INVADERS
+            </h2>
+
+            <p>
+                Uzaylı istilasına karşı
+                savaş ve dünyayı
+                kurtar!
+            </p>
+
+            <a
+                href="oyun4.html"
+                class="play-button"
+            >
+                ▶ OYNA
+            </a>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- KLAVYE BİLGİSİ -->
+
+    <div class="instructions">
+
+        OYUN SEÇMEK İÇİN:
+        <span>ENTER</span>
+        &nbsp; • &nbsp;
+        OYUNLAR ARASINDA GEZ:
+        <span>↑ ↓ ← →</span>
+
+    </div>
+
+
+    <!-- FOOTER -->
+
+    <div class="footer">
+
+        RETRO ARCADE
+        <strong>© 2026</strong>
+        &nbsp; // &nbsp;
+        INSERT COIN TO PLAY
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+"use strict";
+
+
+/* =====================================
+   KLAVYE İLE OYUN SEÇME
+===================================== */
+
+const cards =
+    document.querySelectorAll(".game-card");
+
+const buttons =
+    document.querySelectorAll(".play-button");
+
+let selected = 0;
+
+
+function updateSelection() {
+
+    cards.forEach(function(card, index) {
+
+        if (index === selected) {
+
+            card.style.transform =
+                "translateY(-8px) scale(1.02)";
+
+            card.style.borderColor =
+                "#00ffff";
+
+            card.style.boxShadow =
+                "0 0 10px #00ffff, 0 0 30px rgba(0,255,255,0.35)";
+
+        } else {
+
+            card.style.transform = "";
+
+            card.style.borderColor =
+                "#00ff00";
+
+            card.style.boxShadow =
+                "0 0 10px rgba(0,255,0,0.25)";
+
+        }
+
+    });
+
+}
+
+
+/* =====================================
+   KLAVYE
+===================================== */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key === "ArrowRight" ||
+            event.key === "ArrowDown"
+        ) {
+
+            selected++;
+
+            if (selected >= cards.length) {
+                selected = 0;
+            }
+
+            updateSelection();
+
+        }
+
+
+        if (
+            event.key === "ArrowLeft" ||
+            event.key === "ArrowUp"
+        ) {
+
+            selected--;
+
+            if (selected < 0) {
+                selected = cards.length - 1;
+            }
+
+            updateSelection();
+
+        }
+
+
+        if (event.key === "Enter") {
+
+            buttons[selected].click();
+
+        }
+
+    }
+);
+
+
+/* =====================================
+   MOUSE İLE SEÇİM
+===================================== */
+
+cards.forEach(function(card, index) {
+
+    card.addEventListener(
+        "mouseenter",
+        function() {
+
+            selected = index;
+
+            updateSelection();
+
+        }
+    );
+
+});
+
+
+/* =====================================
+   BAŞLANGIÇ SEÇİMİ
+===================================== */
+
+updateSelection();
+
+</script>
+
+
+</body>
+
+</html>

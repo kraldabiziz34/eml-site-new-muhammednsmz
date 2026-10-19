@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taş Kağıt Makas | Oyun Merkezi</title>
+    <link rel="stylesheet" href="oyunlar.css">
+</head>
+
+<body>
+
+    <div class="ana-menu-bar ana-menu-bar--game">
+        <a class="ana-menu-btn" href="../index.html">&#8592; ANA MENU</a>
+    </div>
+
+    <main class="game-shell">
+        <div class="topline">
+            <a class="brand-mark" href="../index.html">Proje Merkezi</a>
+            <a class="back-link" href="proje1.html">← Oyunlar</a>
+        </div>
+
+        <section class="game-panel" aria-labelledby="game-title">
+            <p class="eyebrow">Oyun 03 · Kapışma</p>
+            <h1 id="game-title">Taş Kağıt Makas</h1>
+            <p class="game-lead">Seçimini yap; bakalım bu tur kimin olacak.</p>
+
+            <div class="choice-grid" aria-label="Seçimini yap">
+                <button class="choice-button" type="button" data-choice="taş" aria-label="Taş">✊</button>
+                <button class="choice-button" type="button" data-choice="kağıt" aria-label="Kağıt">✋</button>
+                <button class="choice-button" type="button" data-choice="makas" aria-label="Makas">✌️</button>
+            </div>
+
+            <p id="feedback" class="feedback" aria-live="polite">İlk hamleni bekliyorum.</p>
+            <div class="stats-row round-score">
+                <div class="stat"><span class="stat-label">Sen</span><span class="stat-value" id="player-score">0</span></div>
+                <div class="stat"><span class="stat-label">Berabere</span><span class="stat-value" id="draw-score">0</span></div>
+                <div class="stat"><span class="stat-label">Bilgisayar</span><span class="stat-value" id="computer-score">0</span></div>
+            </div>
+            <div class="action-row">
+                <button class="button-secondary" id="reset-score" type="button">Skoru sıfırla</button>
+            </div>
+        </section>
+
+        <a class="menu-return" href="proje1.html">← Tüm oyunlara dön</a>
+    </main>
+
+    <script>
+        const options = ["taş", "kağıt", "makas"];
+        const emoji = { taş: "✊", kağıt: "✋", makas: "✌️" };
+        const scores = { player: 0, draw: 0, computer: 0 };
+        const feedback = document.getElementById("feedback");
+
+        document.querySelectorAll("[data-choice]").forEach((button) => {
+            button.addEventListener("click", () => {
+                const player = button.dataset.choice;
+                const computer = options[Math.floor(Math.random() * options.length)];
+                let outcome;
+
+                if (player === computer) {
+                    scores.draw++;
+                    outcome = "Berabere!";
+                } else if (
+                    (player === "taş" && computer === "makas") ||
+                    (player === "kağıt" && computer === "taş") ||
+                    (player === "makas" && computer === "kağıt")
+                ) {
+                    scores.player++;
+                    outcome = "Bu tur senin!";
+                } else {
+                    scores.computer++;
+                    outcome = "Bu tur bilgisayarın.";
+                }
+
+                document.getElementById("player-score").textContent = scores.player;
+                document.getElementById("draw-score").textContent = scores.draw;
+                document.getElementById("computer-score").textContent = scores.computer;
+                feedback.textContent = `Sen ${emoji[player]} · Bilgisayar ${emoji[computer]} — ${outcome}`;
+            });
+        });
+
+        document.getElementById("reset-score").addEventListener("click", () => {
+            scores.player = 0;
+            scores.draw = 0;
+            scores.computer = 0;
+            document.getElementById("player-score").textContent = 0;
+            document.getElementById("draw-score").textContent = 0;
+            document.getElementById("computer-score").textContent = 0;
+            feedback.textContent = "Skor sıfırlandı. Yeni tur?";
+        });
+    </script>
+</body>
+
+</html>

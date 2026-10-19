@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Pac-Man</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="ana-menu-bar">
+    <a class="ana-menu-btn" href="../index.html">&#8592; ANA MENU</a>
+</div>
+
+<div class="game-container">
+
+    <h1 class="game-title">PAC-MAN</h1>
+
+    <div class="game-screen">
+
+        <div class="game-info">
+
+            <div>
+                SKOR
+                <span id="score">0</span>
+            </div>
+
+            <div>
+                CAN
+                <span id="lives">3</span>
+            </div>
+
+            <div>
+                SEVİYE
+                <span id="level">1</span>
+            </div>
+
+            <div>
+                EN YÜKSEK
+                <span id="highScore">0</span>
+            </div>
+
+        </div>
+
+        <canvas id="game" width="500" height="425"></canvas>
+
+        <div id="message" class="game-message">
+
+            <h2 id="messageTitle">PAC-MAN</h2>
+
+            <p id="messageText">
+                Oyuna başlamak için bir yöne bas.
+            </p>
+
+            <button id="startButton">
+                OYUNA BAŞLA
+            </button>
+
+        </div>
+
+        <div class="controls">
+
+            <div class="keyboard">
+
+                <div>↑</div>
+
+                <div>
+                    <span>←</span>
+                    <span>↓</span>
+                    <span>→</span>
+                </div>
+
+            </div>
+
+            <p>Yön tuşları ile hareket et</p>
+
+            <p>
+                <b>P</b> = Duraklat
+                &nbsp;&nbsp;
+                <b>R</b> = Yeniden Başlat
+            </p>
+
+        </div>
+
+        <button id="restartButton">
+            ↻ YENİDEN BAŞLAT
+        </button>
+
+    </div>
+
+    <a href="retro.html" class="back-button">
+        ← Oyunlara Dön
+    </a>
+
+</div>
+
+
+<script>
+
+"use strict";
+
+/* =========================================
+   CANVAS
+========================================= */
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const TILE = 25;
+
+const ROWS = 17;
+const COLS = 20;
+
+
+/* =========================================
+   HARİTA
+========================================= */
+
+const MAP = [
+
+    "####################",
+    "#..................#",
+    "#.####.#####.####..#",
+    "#..................#",
+    "#.##.###.#.###.##..#",
+    "#....#.......#.....#",
+    "####.#.#####.#.#####",
+    "#....#...#...#.....#",
+    "#.######.#.######..#",
+    "#..................#",
+    "#.######.#.######..#",
+    "#.....#...#...#....#",
+    "#####.#.#####.#.####",
+    "#....#.......#.....#",
+    "#.##.###.#.###.##..#",
+    "#..................#",
+    "####################"
+
+];
+
+
+/* =========================================
+   OYUN DEĞİŞKENLERİ
+========================================= */
+
+let score = 0;
+
+let highScore =
+    Number(localStorage.getItem("pacmanHighScore")) || 0;
+
+let lives = 3;
+
+let level = 1;
+
+let gameStarted = false;
+
+let gamePaused = false;
+
+let gameOver = false;
+
+let gameWon = false;
+
+let powerMode = false;
+
+let powerTimer = 0;
+
+let animationFrame;
+
+let lastTime = 0;
+
+let moveTimer = 0;
+
+let ghostTimer = 0;
+
+let dots = [];
+
+
+/* =========================================
+   PAC-MAN
+========================================= */
+
+const pacman = {
+
+    x: 1,
+
+    y: 1,
+
+    startX: 1,
+
+    startY: 1,
+
+    dx: 0,
+
+    dy: 0,
+
+    nextDx: 0,
+
+    nextDy: 0,
+
+    direction: 0,
+
+    mouth: 0,
+
+    mouthDirection: 1,
+
+    moving: false
+
+};
+
+
+/* =========================================
+   HAYALET RENKLERİ
+========================================= */
+
+const ghostColors = [
+
+    "#ff0000",
+    "#ff69b4",
+    "#00ffff",
+    "#ff8c00"
+
+];
+
+
+/* =========================================
+   HAYALET POZİSYONLARI
+========================================= */
+
+let ghosts = [];
+
+
+/* =========================================
+   HTML ELEMANLARI
+========================================= */
+
+const scoreElement =
+    document.getElementById("score");
+
+const livesElement =
+    document.getElementById("lives");
+
+const levelElement =
+    document.getElementById("level");
+
+const highScoreElement =
+    document.getElementById("highScore");
+
+const message =
+    document.getElementById("message");
+
+const messageTitle =
+    document.getElementById("messageTitle");
+
+const messageText =
+    document.getElementById("messageText");
+
+const startButton =
+    document.getElementById("startButton");
+
+const restartButton =
+    document.getElementById("restartButton");
+
+
+/* =========================================
+   SES SİSTEMİ
+========================================= */
+
+let audioContext = null;
+
+
+function initAudio() {
+
+    if (!audioContext) {
+
+        audioContext =
+            new (window.AudioContext ||
+            window.webkitAudioContext)();
+
+    }
+
+}
+
+
+function playSound(
+    frequency = 440,
+    duration = 0.08,
+    type = "square"
+) {
+
+    try {
+
+        initAudio();
+
+        const oscillator =
+            audioContext.createOscillator();
+
+        const gain =
+            audioContext.createGain();
+
+        oscillator.type = type;
+
+        oscillator.frequency.value =
+            frequency;
+
+        gain.gain.setValueAtTime(
+            0.08,
+            audioContext.currentTime
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioContext.currentTime + duration
+        );
+
+        oscillator.connect(gain);
+
+        gain.connect(audioContext.destination);
+
+        oscillator.start();
+
+        oscillator.stop(
+            audioContext.currentTime + duration
+        );
+
+    } catch (error) {
+
+        // Tarayıcı ses desteği yoksa oyun devam eder.
+
+    }
+
+}
+
+
+/* =========================================
+   HARİTAYI HAZIRLA
+========================================= */
+
+function createDots() {
+
+    dots = [];
+
+    for (
+        let y = 0;
+        y < MAP.length;
+        y++
+    ) {
+
+        for (
+            let x = 0;
+            x < MAP[y].length;
+            x++
+        ) {
+
+            if (MAP[y][x] === ".") {
+
+                dots.push({
+                    x: x,
+                    y: y,
+                    power: false
+                });
+
+            }
+
+        }
+
+    }
+
+
+    /*
+       Güç kapsülleri
+    */
+
+    const powerPositions = [
+
+        { x: 1, y: 1 },
+
+        { x: 18, y: 1 },
+
+        { x: 1, y: 15 },
+
+        { x: 18, y: 15 }
+
+    ];
+
+
+    powerPositions.forEach(position => {
+
+        const existing =
+            dots.find(
+                dot =>
+                    dot.x === position.x &&
+                    dot.y === position.y
+            );
+
+        if (existing) {
+
+            existing.power = true;
+
+        }
+
+    });
+
+}
+
+
+/* =========================================
+   HAYALET OLUŞTUR
+========================================= */
+
+function createGhosts() {
+
+    ghosts = [
+
+        {
+
+            x: 9,
+
+            y: 8,
+
+            startX: 9,
+
+            startY: 8,
+
+            dx: -1,
+
+            dy: 0,
+
+            color: ghostColors[0],
+
+            name: "Blinky"
+
+        },
+
+        {
+
+            x: 10,
+
+            y: 8,
+
+            startX: 10,
+
+            startY: 8,
+
+            dx: 1,
+
+            dy: 0,
+
+            color: ghostColors[1],
+
+            name: "Pinky"
+
+        },
+
+        {
+
+            x: 9,
+
+            y: 9,
+
+            startX: 9,
+
+            startY: 9,
+
+            dx: 0,
+
+            dy: -1,
+
+            color: ghostColors[2],
+
+            name: "Inky"
+
+        },
+
+        {
+
+            x: 10,
+
+            y: 9,
+
+            startX: 10,
+
+            startY: 9,
+
+            dx: 0,
+
+            dy: 1,
+
+            color: ghostColors[3],
+
+            name: "Clyde"
+
+        }
+
+    ];
+
+}
+
+
+/* =========================================
+   OYUNU SIFIRLA
+========================================= */
+
+function resetGame() {
+
+    score = 0;
+
+    lives = 3;
+
+    level = 1;
+
+    gameStarted = false;
+
+    gamePaused = false;
+
+    gameOver = false;
+
+    gameWon = false;
+
+    powerMode = false;
+
+    powerTimer = 0;
+
+    pacman.x = pacman.startX;
+
+    pacman.y = pacman.startY;
+
+    pacman.dx = 0;
+
+    pacman.dy = 0;
+
+    pacman.nextDx = 0;
+
+    pacman.nextDy = 0;
+
+    createDots();
+
+    createGhosts();
+
+    updateUI();
+
+    showMessage(
+        "PAC-MAN",
+        "Oyuna başlamak için bir yön tuşuna bas.",
+        "OYUNA BAŞLA"
+    );
+
+}
+
+
+/* =========================================
+   UI
+========================================= */
+
+function updateUI() {
+
+    scoreElement.textContent = score;
+
+    livesElement.textContent = lives;
+
+    levelElement.textContent = level;
+
+    highScoreElement.textContent = highScore;
+
+}
+
+
+function showMessage(
+    title,
+    text,
+    buttonText
+) {
+
+    messageTitle.textContent = title;
+
+    messageText.textContent = text;
+
+    startButton.textContent = buttonText;
+
+    message.classList.remove("hidden");
+
+}
+
+
+function hideMessage() {
+
+    message.classList.add("hidden");
+
+}
+
+
+/* =========================================
+   YÖN KONTROLÜ
+========================================= */
+
+function isWall(x, y) {
+
+    if (
+        x < 0 ||
+        x >= COLS ||
+        y < 0 ||
+        y >= ROWS
+    ) {
+
+        return true;
+
+    }
+
+    return MAP[y][x] === "#";
+
+}
+
+
+function canMove(x, y, dx, dy) {
+
+    return !isWall(
+        x + dx,
+        y + dy
+    );
+
+}
+
+
+/* =========================================
+   KLAVYE
+========================================= */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        const key = event.key;
+
+        if (
+            key === "ArrowUp" ||
+            key === "ArrowDown" ||
+            key === "ArrowLeft" ||
+            key === "ArrowRight"
+        ) {
+
+            event.preventDefault();
+
+            if (key === "ArrowUp") {
+
+                pacman.nextDx = 0;
+                pacman.nextDy = -1;
+                pacman.direction = -Math.PI / 2;
+
+            }
+
+            if (key === "ArrowDown") {
+
+                pacman.nextDx = 0;
+                pacman.nextDy = 1;
+                pacman.direction = Math.PI / 2;
+
+            }
+
+            if (key === "ArrowLeft") {
+
+                pacman.nextDx = -1;
+                pacman.nextDy = 0;
+                pacman.direction = Math.PI;
+
+            }
+
+            if (key === "ArrowRight") {
+
+                pacman.nextDx = 1;
+                pacman.nextDy = 0;
+                pacman.direction = 0;
+
+            }
+
+
+            if (!gameStarted) {
+
+                startGame();
+
+            }
+
+        }
+
+
+        if (
+            key.toLowerCase() === "p"
+        ) {
+
+            togglePause();
+
+        }
+
+
+        if (
+            key.toLowerCase() === "r"
+        ) {
+
+            resetGame();
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   OYUNU BAŞLAT
+========================================= */
+
+function startGame() {
+
+    if (gameOver || gameWon) {
+
+        resetGame();
+
+    }
+
+    gameStarted = true;
+
+    gamePaused = false;
+
+    hideMessage();
+
+    initAudio();
+
+}
+
+
+/* =========================================
+   DURAKLAT
+========================================= */
+
+function togglePause() {
+
+    if (
+        !gameStarted ||
+        gameOver ||
+        gameWon
+    ) {
+
+        return;
+
+    }
+
+    gamePaused = !gamePaused;
+
+
+    if (gamePaused) {
+
+        showMessage(
+            "DURAKLATILDI",
+            "Devam etmek için P tuşuna bas.",
+            "DEVAM ET"
+        );
+
+    } else {
+
+        hideMessage();
+
+    }
+
+}
+
+
+/* =========================================
+   PAC-MAN HAREKETİ
+========================================= */
+
+function updatePacman() {
+
+    if (
+        canMove(
+            pacman.x,
+            pacman.y,
+            pacman.nextDx,
+            pacman.nextDy
+        )
+    ) {
+
+        pacman.dx = pacman.nextDx;
+
+        pacman.dy = pacman.nextDy;
+
+    }
+
+
+    if (
+        canMove(
+            pacman.x,
+            pacman.y,
+            pacman.dx,
+            pacman.dy
+        )
+    ) {
+
+        pacman.x += pacman.dx;
+
+        pacman.y += pacman.dy;
+
+        pacman.moving = true;
+
+        pacman.mouth +=
+            0.35 * pacman.mouthDirection;
+
+
+        if (
+            pacman.mouth >= 1 ||
+            pacman.mouth <= 0
+        ) {
+
+            pacman.mouthDirection *= -1;
+
+        }
+
+    } else {
+
+        pacman.moving = false;
+
+    }
+
+}
+
+
+/* =========================================
+   NOKTA YEME
+========================================= */
+
+function eatDot() {
+
+    const index =
+        dots.findIndex(
+            dot =>
+                dot.x === pacman.x &&
+                dot.y === pacman.y
+        );
+
+
+    if (index === -1) {
+
+        return;
+
+    }
+
+
+    const dot = dots[index];
+
+
+    dots.splice(index, 1);
+
+
+    if (dot.power) {
+
+        score += 50;
+
+        powerMode = true;
+
+        powerTimer = 7000;
+
+        playSound(
+            150,
+            0.25,
+            "sawtooth"
+        );
+
+    } else {
+
+        score += 10;
+
+        playSound(
+            500,
+            0.04
+        );
+
+    }
+
+
+    if (score > highScore) {
+
+        highScore = score;
+
+        localStorage.setItem(
+            "pacmanHighScore",
+            highScore
+        );
+
+    }
+
+
+    updateUI();
+
+
+    if (dots.length === 0) {
+
+        nextLevel();
+
+    }
+
+}
+
+
+/* =========================================
+   SEVİYE ATLAMA
+========================================= */
+
+function nextLevel() {
+
+    gameWon = true;
+
+    gameStarted = false;
+
+    score += 500;
+
+    level++;
+
+    playSound(
+        700,
+        0.15
+    );
+
+    setTimeout(() => {
+
+        playSound(
+            900,
+            0.15
+        );
+
+    }, 150);
+
+
+    updateUI();
+
+
+    showMessage(
+        "TEBRİKLER!",
+        "Haritayı temizledin! +500 puan",
+        "SONRAKİ SEVİYE"
+    );
+
+}
+
+
+/* =========================================
+   SONRAKİ SEVİYE
+========================================= */
+
+function startNextLevel() {
+
+    gameWon = false;
+
+    gameStarted = true;
+
+    powerMode = false;
+
+    powerTimer = 0;
+
+    pacman.x = pacman.startX;
+
+    pacman.y = pacman.startY;
+
+    pacman.dx = 0;
+
+    pacman.dy = 0;
+
+    pacman.nextDx = 0;
+
+    pacman.nextDy = 0;
+
+    createDots();
+
+    createGhosts();
+
+    hideMessage();
+
+}
+
+
+/* =========================================
+   HAYALET HAREKETİ
+========================================= */
+
+function updateGhosts() {
+
+    ghosts.forEach(ghost => {
+
+        const possibleDirections = [];
+
+
+        const directions = [
+
+            { dx: 1, dy: 0 },
+
+            { dx: -1, dy: 0 },
+
+            { dx: 0, dy: 1 },
+
+            { dx: 0, dy: -1 }
+
+        ];
+
+
+        directions.forEach(direction => {
+
+            if (
+                !isWall(
+                    ghost.x + direction.dx,
+                    ghost.y + direction.dy
+                )
+            ) {
+
+                possibleDirections.push(
+                    direction
+                );
+
+            }
+
+        });
+
+
+        if (
+            possibleDirections.length === 0
+        ) {
+
+            return;
+
+        }
+
+
+        /*
+           Geri dönmeyi mümkün olduğunca
+           engelle
+        */
+
+        const filtered =
+            possibleDirections.filter(
+                direction =>
+                    !(
+                        direction.dx === -ghost.dx &&
+                        direction.dy === -ghost.dy
+                    )
+            );
+
+
+        const choices =
+            filtered.length > 0
+                ? filtered
+                : possibleDirections;
+
+
+        let selected;
+
+
+        /*
+           Bazen Pac-Man'a doğru yaklaş
+        */
+
+        if (
+            Math.random() < 0.65
+        ) {
+
+            choices.sort(
+                (a, b) => {
+
+                    const distanceA =
+                        Math.abs(
+                            pacman.x -
+                            (ghost.x + a.dx)
+                        ) +
+                        Math.abs(
+                            pacman.y -
+                            (ghost.y + a.dy)
+                        );
+
+                    const distanceB =
+                        Math.abs(
+                            pacman.x -
+                            (ghost.x + b.dx)
+                        ) +
+                        Math.abs(
+                            pacman.y -
+                            (ghost.y + b.dy)
+                        );
+
+                    return powerMode
+                        ? distanceB - distanceA
+                        : distanceA - distanceB;
+
+                }
+            );
+
+            selected = choices[0];
+
+        } else {
+
+            selected =
+                choices[
+                    Math.floor(
+                        Math.random() *
+                        choices.length
+                    )
+                ];
+
+        }
+
+
+        ghost.dx = selected.dx;
+
+        ghost.dy = selected.dy;
+
+
+        ghost.x += ghost.dx;
+
+        ghost.y += ghost.dy;
+
+    });
+
+}
+
+
+/* =========================================
+   ÇARPIŞMA
+========================================= */
+
+function checkGhostCollision() {
+
+    ghosts.forEach(ghost => {
+
+        if (
+            ghost.x === pacman.x &&
+            ghost.y === pacman.y
+        ) {
+
+            if (powerMode) {
+
+                score += 200;
+
+                ghost.x = ghost.startX;
+
+                ghost.y = ghost.startY;
+
+                playSound(
+                    850,
+                    0.15
+                );
+
+                updateUI();
+
+            } else {
+
+                loseLife();
+
+            }
+
+        }
+
+    });
+
+}
+
+
+/* =========================================
+   CAN KAYBET
+========================================= */
+
+function loseLife() {
+
+    lives--;
+
+    playSound(
+        120,
+        0.4,
+        "sawtooth"
+    );
+
+    updateUI();
+
+
+    if (lives <= 0) {
+
+        endGame();
+
+        return;
+
+    }
+
+
+    pacman.x = pacman.startX;
+
+    pacman.y = pacman.startY;
+
+    pacman.dx = 0;
+
+    pacman.dy = 0;
+
+    pacman.nextDx = 0;
+
+    pacman.nextDy = 0;
+
+
+    ghosts.forEach(ghost => {
+
+        ghost.x = ghost.startX;
+
+        ghost.y = ghost.startY;
+
+    });
+
+}
+
+
+/* =========================================
+   OYUN BİTTİ
+========================================= */
+
+function endGame() {
+
+    gameOver = true;
+
+    gameStarted = false;
+
+    showMessage(
+        "OYUN BİTTİ",
+        "Skorun: " + score,
+        "TEKRAR OYNA"
+    );
+
+}
+
+
+/* =========================================
+   ÇİZİM
+========================================= */
+
+function drawMap() {
+
+    ctx.fillStyle = "#000";
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    /*
+       Duvarlar
+    */
+
+    for (
+        let y = 0;
+        y < ROWS;
+        y++
+    ) {
+
+        for (
+            let x = 0;
+            x < COLS;
+            x++
+        ) {
+
+            if (MAP[y][x] === "#") {
+
+                ctx.fillStyle = "#1010ff";
+
+                ctx.fillRect(
+                    x * TILE + 1,
+                    y * TILE + 1,
+                    TILE - 2,
+                    TILE - 2
+                );
+
+
+                ctx.strokeStyle = "#4b4bff";
+
+                ctx.lineWidth = 1;
+
+                ctx.strokeRect(
+                    x * TILE + 3,
+                    y * TILE + 3,
+                    TILE - 6,
+                    TILE - 6
+                );
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* =========================================
+   NOKTALARI ÇİZ
+========================================= */
+
+function drawDots() {
+
+    dots.forEach(dot => {
+
+        const centerX =
+            dot.x * TILE +
+            TILE / 2;
+
+        const centerY =
+            dot.y * TILE +
+            TILE / 2;
+
+
+        ctx.beginPath();
+
+
+        if (dot.power) {
+
+            ctx.fillStyle = "#fff";
+
+            ctx.arc(
+                centerX,
+                centerY,
+                7,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+        } else {
+
+            ctx.fillStyle = "#fff";
+
+            ctx.arc(
+                centerX,
+                centerY,
+                3,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+        }
+
+    });
+
+}
+
+
+/* =========================================
+   PAC-MAN ÇİZ
+========================================= */
+
+function drawPacman() {
+
+    const centerX =
+        pacman.x * TILE +
+        TILE / 2;
+
+    const centerY =
+        pacman.y * TILE +
+        TILE / 2;
+
+
+    const mouthAngle =
+        0.25 +
+        pacman.mouth * 0.25;
+
+
+    ctx.save();
+
+    ctx.translate(
+        centerX,
+        centerY
+    );
+
+    ctx.rotate(
+        pacman.direction
+    );
+
+
+    ctx.fillStyle = "#ffff00";
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(0, 0);
+
+    ctx.arc(
+        0,
+        0,
+        10,
+        mouthAngle,
+        Math.PI * 2 - mouthAngle
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    ctx.restore();
+
+}
+
+
+/* =========================================
+   HAYALET ÇİZ
+========================================= */
+
+function drawGhost(ghost) {
+
+    const x =
+        ghost.x * TILE +
+        TILE / 2;
+
+    const y =
+        ghost.y * TILE +
+        TILE / 2;
+
+
+    const radius = 10;
+
+
+    ctx.save();
+
+    ctx.translate(x, y);
+
+
+    /*
+       Güç modu
+    */
+
+    if (powerMode) {
+
+        ctx.fillStyle =
+            powerTimer < 2000 &&
+            Math.floor(
+                powerTimer / 150
+            ) % 2 === 0
+                ? "#ffffff"
+                : "#2222ff";
+
+    } else {
+
+        ctx.fillStyle =
+            ghost.color;
+
+    }
+
+
+    /*
+       Gövde
+    */
+
+    ctx.beginPath();
+
+    ctx.arc(
+        0,
+        -2,
+        radius,
+        Math.PI,
+        0
+    );
+
+
+    ctx.lineTo(
+        radius,
+        10
+    );
+
+
+    ctx.lineTo(
+        5,
+        7
+    );
+
+
+    ctx.lineTo(
+        0,
+        10
+    );
+
+
+    ctx.lineTo(
+        -5,
+        7
+    );
+
+
+    ctx.lineTo(
+        -radius,
+        10
+    );
+
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    /*
+       Gözler
+    */
+
+    ctx.fillStyle = "white";
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+        -4,
+        -3,
+        3.5,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.arc(
+        4,
+        -3,
+        3.5,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    ctx.fillStyle = "#000";
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+        -4,
+        -3,
+        1.5,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.arc(
+        4,
+        -3,
+        1.5,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    ctx.restore();
+
+}
+
+
+/* =========================================
+   TÜMÜNÜ ÇİZ
+========================================= */
+
+function draw() {
+
+    drawMap();
+
+    drawDots();
+
+    ghosts.forEach(drawGhost);
+
+    drawPacman();
+
+}
+
+
+/* =========================================
+   OYUN GÜNCELLEME
+========================================= */
+
+function update(delta) {
+
+    if (
+        !gameStarted ||
+        gamePaused ||
+        gameOver ||
+        gameWon
+    ) {
+
+        return;
+
+    }
+
+
+    moveTimer += delta;
+
+    ghostTimer += delta;
+
+
+    /*
+       Pac-Man hızı
+    */
+
+    const pacmanSpeed =
+        Math.max(
+            100,
+            180 - level * 10
+        );
+
+
+    if (
+        moveTimer >= pacmanSpeed
+    ) {
+
+        moveTimer = 0;
+
+        updatePacman();
+
+        eatDot();
+
+        checkGhostCollision();
+
+    }
+
+
+    /*
+       Hayalet hızı
+    */
+
+    const ghostSpeed =
+        Math.max(
+            130,
+            260 - level * 12
+        );
+
+
+    if (
+        ghostTimer >= ghostSpeed
+    ) {
+
+        ghostTimer = 0;
+
+        updateGhosts();
+
+        checkGhostCollision();
+
+    }
+
+
+    /*
+       Güç modu zamanlayıcı
+    */
+
+    if (powerMode) {
+
+        powerTimer -= delta;
+
+
+        if (powerTimer <= 0) {
+
+            powerMode = false;
+
+            powerTimer = 0;
+
+        }
+
+    }
+
+}
+
+
+/* =========================================
+   ANA OYUN DÖNGÜSÜ
+========================================= */
+
+function gameLoop(timestamp) {
+
+    const delta =
+        timestamp - lastTime;
+
+    lastTime = timestamp;
+
+
+    update(delta);
+
+    draw();
+
+
+    animationFrame =
+        requestAnimationFrame(
+            gameLoop
+        );
+
+}
+
+
+/* =========================================
+   BUTONLAR
+========================================= */
+
+startButton.addEventListener(
+    "click",
+    function() {
+
+        initAudio();
+
+
+        if (gameWon) {
+
+            startNextLevel();
+
+            return;
+
+        }
+
+
+        if (gameOver) {
+
+            resetGame();
+
+            startGame();
+
+            return;
+
+        }
+
+
+        if (gamePaused) {
+
+            togglePause();
+
+            return;
+
+        }
+
+
+        startGame();
+
+    }
+);
+
+
+restartButton.addEventListener(
+    "click",
+    function() {
+
+        resetGame();
+
+    }
+);
+
+
+/* =========================================
+   MOBİL DOKUNMATİK KONTROLLER
+========================================= */
+
+document.addEventListener(
+    "touchstart",
+    function(event) {
+
+        if (!gameStarted) {
+
+            return;
+
+        }
+
+
+        const touch =
+            event.touches[0];
+
+
+        const width =
+            window.innerWidth;
+
+        const height =
+            window.innerHeight;
+
+
+        const x =
+            touch.clientX;
+
+        const y =
+            touch.clientY;
+
+
+        const centerX =
+            width / 2;
+
+        const centerY =
+            height / 2;
+
+
+        const dx =
+            x - centerX;
+
+        const dy =
+            y - centerY;
+
+
+        if (
+            Math.abs(dx) >
+            Math.abs(dy)
+        ) {
+
+            if (dx > 0) {
+
+                pacman.nextDx = 1;
+
+                pacman.nextDy = 0;
+
+            } else {
+
+                pacman.nextDx = -1;
+
+                pacman.nextDy = 0;
+
+            }
+
+        } else {
+
+            if (dy > 0) {
+
+                pacman.nextDx = 0;
+
+                pacman.nextDy = 1;
+
+            } else {
+
+                pacman.nextDx = 0;
+
+                pacman.nextDy = -1;
+
+            }
+
+        }
+
+    },
+    {
+        passive: true
+    }
+);
+
+
+/* =========================================
+   BAŞLANGIÇ
+========================================= */
+
+createDots();
+
+createGhosts();
+
+updateUI();
+
+requestAnimationFrame(
+    gameLoop
+);
+
+</script>
+
+</body>
+</html>

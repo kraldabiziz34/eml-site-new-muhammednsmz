@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hafıza Eşleştirme | Oyun Merkezi</title>
+    <link rel="stylesheet" href="oyunlar.css">
+</head>
+
+<body>
+
+    <div class="ana-menu-bar ana-menu-bar--game">
+        <a class="ana-menu-btn" href="../index.html">&#8592; ANA MENU</a>
+    </div>
+
+    <main class="game-shell">
+        <div class="topline">
+            <a class="brand-mark" href="../index.html">Proje Merkezi</a>
+            <a class="back-link" href="proje1.html">← Oyunlar</a>
+        </div>
+
+        <section class="game-panel" aria-labelledby="game-title">
+            <p class="eyebrow">Oyun 04 · Hafıza</p>
+            <h1 id="game-title">Hafıza Eşleştirme</h1>
+            <p class="game-lead">Kartları çevir, aynı olan simgeleri bul. Daha az hamleyle bitirmeye çalış.</p>
+
+            <div class="stats-row">
+                <div class="stat"><span class="stat-label">Hamle</span><span class="stat-value" id="moves">0</span></div>
+                <div class="stat"><span class="stat-label">Bulunan çift</span><span class="stat-value" id="pairs">0 / 8</span></div>
+            </div>
+
+            <div class="memory-grid" id="memory-grid" aria-label="Hafıza kartları"></div>
+            <p class="feedback" id="feedback" aria-live="polite">İlk iki kartını aç.</p>
+            <div class="action-row">
+                <button class="button-secondary" id="new-game" type="button">Karıştır ve başla</button>
+            </div>
+        </section>
+
+        <a class="menu-return" href="proje1.html">← Tüm oyunlara dön</a>
+    </main>
+
+    <script>
+        const symbols = ["🍋", "🎈", "🐙", "🌼", "🍉", "🦋", "⭐", "🎧"];
+        const board = document.getElementById("memory-grid");
+        const feedback = document.getElementById("feedback");
+        let deck = [];
+        let openCards = [];
+        let matchedPairs = 0;
+        let moves = 0;
+        let locked = false;
+        let mismatchTimer;
+
+        function startGame() {
+            clearTimeout(mismatchTimer);
+            deck = [...symbols, ...symbols].map((symbol, id) => ({ symbol, id }));
+            for (let index = deck.length - 1; index > 0; index--) {
+                const swapIndex = Math.floor(Math.random() * (index + 1));
+                [deck[index], deck[swapIndex]] = [deck[swapIndex], deck[index]];
+            }
+            openCards = [];
+            matchedPairs = 0;
+            moves = 0;
+            locked = false;
+            document.getElementById("moves").textContent = moves;
+            document.getElementById("pairs").textContent = `${matchedPairs} / ${symbols.length}`;
+            feedback.textContent = "İlk iki kartını aç.";
+            board.replaceChildren();
+
+            deck.forEach((card, index) => {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "memory-card";
+                button.textContent = "?";
+                button.setAttribute("aria-label", `Kart ${index + 1}, kapalı`);
+                button.dataset.index = index;
+                button.addEventListener("click", () => revealCard(index, button));
+                board.append(button);
+            });
+        }
+
+        function revealCard(index, button) {
+            if (locked || button.disabled || openCards.includes(index)) return;
+
+            button.textContent = deck[index].symbol;
+            button.classList.add("is-open");
+            button.setAttribute("aria-label", `Kart ${index + 1}: ${deck[index].symbol}`);
+            openCards.push(index);
+
+            if (openCards.length < 2) return;
+            moves++;
+            document.getElementById("moves").textContent = moves;
+
+            const [firstIndex, secondIndex] = openCards;
+            const firstButton = board.children[firstIndex];
+            const secondButton = board.children[secondIndex];
+
+            if (deck[firstIndex].symbol === deck[secondIndex].symbol) {
+                firstButton.classList.add("is-matched");
+                secondButton.classList.add("is-matched");
+                firstButton.disabled = true;
+                secondButton.disabled = true;
+                firstButton.setAttribute("aria-label", `Eşleşen kart: ${deck[firstIndex].symbol}`);
+                secondButton.setAttribute("aria-label", `Eşleşen kart: ${deck[secondIndex].symbol}`);
+                matchedPairs++;
+                document.getElementById("pairs").textContent = `${matchedPairs} / ${symbols.length}`;
+                openCards = [];
+
+                if (matchedPairs === symbols.length) {
+                    feedback.textContent = `Harika! ${moves} hamlede bütün çiftleri buldun.`;
+                } else {
+                    feedback.textContent = "Eşleşti! Sıradaki çifti bul.";
+                }
+                return;
+            }
+
+            locked = true;
+            feedback.textContent = "Eşleşmedi. Birazdan tekrar kapanacak.";
+            mismatchTimer = setTimeout(() => {
+                [firstIndex, secondIndex].forEach((cardIndex) => {
+                    const cardButton = board.children[cardIndex];
+                    cardButton.textContent = "?";
+                    cardButton.classList.remove("is-open");
+                    cardButton.setAttribute("aria-label", `Kart ${cardIndex + 1}, kapalı`);
+                });
+                openCards = [];
+                locked = false;
+                feedback.textContent = "Yeni bir çift dene.";
+            }, 750);
+        }
+
+        document.getElementById("new-game").addEventListener("click", startGame);
+        startGame();
+    </script>
+</body>
+
+</html>

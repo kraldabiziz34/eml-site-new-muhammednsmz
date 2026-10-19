@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Invaders</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="ana-menu-bar">
+    <a class="ana-menu-btn" href="../index.html">&#8592; ANA MENU</a>
+</div>
+
+<div class="game-container">
+
+    <h1 class="game-title">SPACE INVADERS</h1>
+
+    <div class="game-screen">
+
+        <div class="game-info">
+
+            <div>
+                SKOR:
+                <span id="score">0</span>
+            </div>
+
+            <div>
+                REKOR:
+                <span id="highScore">0</span>
+            </div>
+
+            <div>
+                SEVİYE:
+                <span id="level">1</span>
+            </div>
+
+            <div>
+                CAN:
+                <span id="lives">3</span>
+            </div>
+
+        </div>
+
+        <div class="space-board">
+
+            <canvas
+                id="game"
+                width="700"
+                height="500">
+            </canvas>
+
+            <div
+                id="gameMessage"
+                class="game-message">
+
+                <h2 id="messageTitle">
+                    SPACE INVADERS
+                </h2>
+
+                <p id="messageText">
+                    Dünyayı uzaylılardan kurtar!
+                </p>
+
+                <button id="startButton">
+                    OYUNA BAŞLA
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="controls">
+
+            ← →
+            Hareket
+            &nbsp; | &nbsp;
+
+            SPACE
+            Ateş
+            &nbsp; | &nbsp;
+
+            P
+            Duraklat
+            &nbsp; | &nbsp;
+
+            R
+            Yeniden Başlat
+
+        </div>
+
+        <div class="mobile-controls">
+
+            <button data-action="left">
+                ←
+            </button>
+
+            <button data-action="fire">
+                🔥
+            </button>
+
+            <button data-action="right">
+                →
+            </button>
+
+        </div>
+
+        <button
+            onclick="restartGame()"
+            class="restart-button">
+
+            ↻ YENİDEN BAŞLAT
+
+        </button>
+
+    </div>
+
+    <a
+        href="retro.html"
+        class="back-button">
+
+        ← Oyunlara Dön
+
+    </a>
+
+</div>
+
+
+<script>
+
+"use strict";
+
+
+/* =========================================
+   CANVAS
+========================================= */
+
+const canvas =
+    document.getElementById("game");
+
+const ctx =
+    canvas.getContext("2d");
+
+
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+
+
+/* =========================================
+   OYUN DEĞİŞKENLERİ
+========================================= */
+
+let score = 0;
+
+let highScore =
+    Number(
+        localStorage.getItem(
+            "spaceInvadersHighScore"
+        )
+    ) || 0;
+
+let level = 1;
+
+let lives = 3;
+
+let gameStarted = false;
+
+let gameOver = false;
+
+let gamePaused = false;
+
+let lastTime = 0;
+
+let enemyDirection = 1;
+
+let enemyMoveTimer = 0;
+
+let enemyMoveInterval = 550;
+
+let enemyDropDistance = 20;
+
+let shootCooldown = 0;
+
+let enemyShootTimer = 0;
+
+let combo = 0;
+
+
+/* =========================================
+   TUŞLAR
+========================================= */
+
+const keys = {};
+
+
+document.addEventListener(
+    "keydown",
+    function(e) {
+
+        keys[e.key] = true;
+
+        if (
+            e.key === "ArrowLeft" ||
+            e.key === "ArrowRight" ||
+            e.code === "Space"
+        ) {
+
+            e.preventDefault();
+
+        }
+
+
+        if (e.code === "Space") {
+
+            if (!gameStarted) {
+
+                startGame();
+
+            } else {
+
+                shoot();
+
+            }
+
+        }
+
+
+        if (
+            e.key.toLowerCase() === "p"
+        ) {
+
+            togglePause();
+
+        }
+
+
+        if (
+            e.key.toLowerCase() === "r"
+        ) {
+
+            resetGame();
+
+        }
+
+    }
+);
+
+
+document.addEventListener(
+    "keyup",
+    function(e) {
+
+        keys[e.key] = false;
+
+    }
+);
+
+
+/* =========================================
+   PLAYER
+========================================= */
+
+const player = {
+
+    x: WIDTH / 2 - 25,
+
+    y: HEIGHT - 55,
+
+    width: 50,
+
+    height: 22,
+
+    speed: 7
+
+};
+
+
+/* =========================================
+   MERMİLER
+========================================= */
+
+let bullets = [];
+
+let enemyBullets = [];
+
+
+/* =========================================
+   DÜŞMANLAR
+========================================= */
+
+let invaders = [];
+
+
+/* =========================================
+   POWER UP
+========================================= */
+
+let powerUps = [];
+
+
+/* =========================================
+   YILDIZLAR
+========================================= */
+
+const stars = [];
+
+for (let i = 0; i < 100; i++) {
+
+    stars.push({
+
+        x: Math.random() * WIDTH,
+
+        y: Math.random() * HEIGHT,
+
+        size:
+            Math.random() * 2 + 1,
+
+        speed:
+            Math.random() * 0.4 + 0.1
+
+    });
+
+}
+
+
+/* =========================================
+   SES
+========================================= */
+
+let audioContext = null;
+
+
+function initAudio() {
+
+    if (!audioContext) {
+
+        audioContext =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+    }
+
+}
+
+
+function playSound(
+    frequency,
+    duration = 0.08
+) {
+
+    try {
+
+        initAudio();
+
+        const oscillator =
+            audioContext.createOscillator();
+
+        const gain =
+            audioContext.createGain();
+
+
+        oscillator.type = "square";
+
+        oscillator.frequency.value =
+            frequency;
+
+
+        gain.gain.setValueAtTime(
+            0.04,
+            audioContext.currentTime
+        );
+
+
+        gain.gain.exponentialRampToValueAtTime(
+
+            0.001,
+
+            audioContext.currentTime +
+            duration
+
+        );
+
+
+        oscillator.connect(gain);
+
+        gain.connect(
+            audioContext.destination
+        );
+
+
+        oscillator.start();
+
+        oscillator.stop(
+
+            audioContext.currentTime +
+            duration
+
+        );
+
+    } catch (error) {}
+
+}
+
+
+/* =========================================
+   DÜŞMAN OLUŞTUR
+========================================= */
+
+function createInvaders() {
+
+    invaders = [];
+
+    const rows = 4 + Math.min(level, 3);
+
+    const columns = 10;
+
+    const startX = 70;
+
+    const startY = 50;
+
+    const gapX = 55;
+
+    const gapY = 38;
+
+
+    for (
+        let row = 0;
+        row < rows;
+        row++
+    ) {
+
+        for (
+            let col = 0;
+            col < columns;
+            col++
+        ) {
+
+            invaders.push({
+
+                x:
+                    startX +
+                    col * gapX,
+
+                y:
+                    startY +
+                    row * gapY,
+
+                width: 32,
+
+                height: 22,
+
+                row: row,
+
+                col: col,
+
+                alive: true
+
+            });
+
+        }
+
+    }
+
+
+    enemyDirection = 1;
+
+    enemyMoveTimer = 0;
+
+    enemyBullets = [];
+
+    enemyMoveInterval =
+        Math.max(
+            150,
+            550 - (level - 1) * 45
+        );
+
+}
+
+
+/* =========================================
+   POWER-UP OLUŞTUR
+========================================= */
+
+function createPowerUp(x, y) {
+
+    if (Math.random() > 0.15) {
+        return;
+    }
+
+    powerUps.push({
+
+        x: x,
+
+        y: y,
+
+        width: 18,
+
+        height: 18,
+
+        speed: 2,
+
+        type:
+            Math.random() > 0.5
+                ? "rapid"
+                : "life"
+
+    });
+
+}
+
+
+/* =========================================
+   ATEŞ
+========================================= */
+
+function shoot() {
+
+    if (
+        !gameStarted ||
+        gamePaused ||
+        gameOver
+    ) {
+
+        return;
+
+    }
+
+
+    if (shootCooldown > 0) {
+
+        return;
+
+    }
+
+
+    bullets.push({
+
+        x:
+            player.x +
+            player.width / 2 -
+            2,
+
+        y:
+            player.y,
+
+        width: 4,
+
+        height: 14,
+
+        speed: 10
+
+    });
+
+
+    shootCooldown = 180;
+
+    playSound(600, 0.05);
+
+}
+
+
+/* =========================================
+   DÜŞMAN ATEŞİ
+========================================= */
+
+function enemyShoot() {
+
+    const alive =
+        invaders.filter(
+            enemy => enemy.alive
+        );
+
+
+    if (alive.length === 0) {
+        return;
+    }
+
+
+    const randomEnemy =
+        alive[
+            Math.floor(
+                Math.random() *
+                alive.length
+            )
+        ];
+
+
+    enemyBullets.push({
+
+        x:
+            randomEnemy.x +
+            randomEnemy.width / 2,
+
+        y:
+            randomEnemy.y +
+            randomEnemy.height,
+
+        width: 4,
+
+        height: 12,
+
+        speed:
+            3 + level * 0.25
+
+    });
+
+}
+
+
+/* =========================================
+   ÇARPIŞMA
+========================================= */
+
+function collision(a, b) {
+
+    return (
+
+        a.x < b.x + b.width &&
+
+        a.x + a.width > b.x &&
+
+        a.y < b.y + b.height &&
+
+        a.y + a.height > b.y
+
+    );
+
+}
+
+
+/* =========================================
+   PLAYER UPDATE
+========================================= */
+
+function updatePlayer(deltaTime) {
+
+    if (keys["ArrowLeft"]) {
+
+        player.x -= player.speed;
+
+    }
+
+
+    if (keys["ArrowRight"]) {
+
+        player.x += player.speed;
+
+    }
+
+
+    if (player.x < 0) {
+
+        player.x = 0;
+
+    }
+
+
+    if (
+        player.x >
+        WIDTH - player.width
+    ) {
+
+        player.x =
+            WIDTH - player.width;
+
+    }
+
+
+    if (shootCooldown > 0) {
+
+        shootCooldown -= deltaTime;
+
+    }
+
+}
+
+
+/* =========================================
+   MERMİ UPDATE
+========================================= */
+
+function updateBullets() {
+
+    bullets.forEach(
+        bullet => {
+
+            bullet.y -= bullet.speed;
+
+        }
+    );
+
+
+    bullets =
+        bullets.filter(
+            bullet =>
+                bullet.y > -20
+        );
+
+
+    enemyBullets.forEach(
+        bullet => {
+
+            bullet.y += bullet.speed;
+
+        }
+    );
+
+
+    enemyBullets =
+        enemyBullets.filter(
+            bullet =>
+                bullet.y < HEIGHT + 20
+        );
+
+}
+
+
+/* =========================================
+   DÜŞMAN HAREKETİ
+========================================= */
+
+function updateInvaders(
+    deltaTime
+) {
+
+    enemyMoveTimer += deltaTime;
+
+
+    if (
+        enemyMoveTimer <
+        enemyMoveInterval
+    ) {
+
+        return;
+
+    }
+
+
+    enemyMoveTimer = 0;
+
+
+    const alive =
+        invaders.filter(
+            enemy => enemy.alive
+        );
+
+
+    if (alive.length === 0) {
+
+        nextLevel();
+
+        return;
+
+    }
+
+
+    let hitEdge = false;
+
+
+    for (const enemy of alive) {
+
+        if (
+            enemyDirection === 1 &&
+            enemy.x + enemy.width >= WIDTH - 20
+        ) {
+
+            hitEdge = true;
+
+        }
+
+
+        if (
+            enemyDirection === -1 &&
+            enemy.x <= 20
+        ) {
+
+            hitEdge = true;
+
+        }
+
+    }
+
+
+    if (hitEdge) {
+
+        enemyDirection *= -1;
+
+
+        alive.forEach(
+            enemy => {
+
+                enemy.y +=
+                    enemyDropDistance;
+
+            }
+        );
+
+    } else {
+
+        alive.forEach(
+            enemy => {
+
+                enemy.x +=
+                    enemyDirection *
+                    18;
+
+            }
+        );
+
+    }
+
+
+    /* DÜŞMAN OYUNCUYA ULAŞTI MI? */
+
+    for (const enemy of alive) {
+
+        if (
+            enemy.y +
+            enemy.height >=
+            player.y
+        ) {
+
+            loseLife();
+
+            return;
+
+        }
+
+    }
+
+}
+
+
+/* =========================================
+   ÇARPIŞMALAR
+========================================= */
+
+function updateCollisions() {
+
+    /* PLAYER MERMİLERİ */
+
+    for (const bullet of bullets) {
+
+        for (const enemy of invaders) {
+
+            if (!enemy.alive) {
+                continue;
+            }
+
+
+            if (
+                collision(
+                    bullet,
+                    enemy
+                )
+            ) {
+
+                enemy.alive = false;
+
+                bullet.y = -100;
+
+                combo++;
+
+                const points =
+                    10 +
+                    combo * 5;
+
+                score += points;
+
+
+                if (score > highScore) {
+
+                    highScore = score;
+
+                    localStorage.setItem(
+
+                        "spaceInvadersHighScore",
+
+                        highScore
+
+                    );
+
+                }
+
+
+                createPowerUp(
+                    enemy.x,
+                    enemy.y
+                );
+
+
+                playSound(
+                    800 +
+                    enemy.row * 50,
+                    0.08
+                );
+
+
+                updateUI();
+
+                break;
+
+            }
+
+        }
+
+    }
+
+
+    /* DÜŞMAN MERMİLERİ */
+
+    for (
+        const bullet of enemyBullets
+    ) {
+
+        if (
+            collision(
+                bullet,
+                player
+            )
+        ) {
+
+            bullet.y =
+                HEIGHT + 100;
+
+            loseLife();
+
+        }
+
+    }
+
+
+    /* POWER-UP */
+
+    for (const power of powerUps) {
+
+        power.y += power.speed;
+
+
+        if (
+            collision(
+                power,
+                player
+            )
+        ) {
+
+            power.y =
+                HEIGHT + 100;
+
+
+            if (
+                power.type ===
+                "life"
+            ) {
+
+                lives++;
+
+            } else {
+
+                score += 100;
+
+                shootCooldown = 0;
+
+            }
+
+
+            updateUI();
+
+            playSound(
+                1000,
+                0.15
+            );
+
+        }
+
+    }
+
+
+    powerUps =
+        powerUps.filter(
+            power =>
+                power.y < HEIGHT + 30
+        );
+
+}
+
+
+/* =========================================
+   CAN KAYBI
+========================================= */
+
+function loseLife() {
+
+    if (gameOver) {
+        return;
+    }
+
+
+    lives--;
+
+    combo = 0;
+
+    updateUI();
+
+    playSound(
+        120,
+        0.25
+    );
+
+
+    if (lives <= 0) {
+
+        endGame();
+
+        return;
+
+    }
+
+
+    player.x =
+        WIDTH / 2 -
+        player.width / 2;
+
+
+    bullets = [];
+
+    enemyBullets = [];
+
+}
+
+
+/* =========================================
+   SEVİYE
+========================================= */
+
+function nextLevel() {
+
+    level++;
+
+    score +=
+        500 * level;
+
+    bullets = [];
+
+    enemyBullets = [];
+
+    powerUps = [];
+
+    createInvaders();
+
+    updateUI();
+
+    playSound(
+        1000,
+        0.2
+    );
+
+}
+
+
+/* =========================================
+   OYUN BİTTİ
+========================================= */
+
+function endGame() {
+
+    gameOver = true;
+
+    gameStarted = false;
+
+    showMessage(
+
+        "OYUN BİTTİ",
+
+        "Skorun: " +
+        score,
+
+        "TEKRAR OYNA"
+
+    );
+
+}
+
+
+/* =========================================
+   OYUN BAŞLAT
+========================================= */
+
+function startGame() {
+
+    if (gameOver) {
+
+        resetGame();
+
+    }
+
+
+    gameStarted = true;
+
+    gamePaused = false;
+
+    hideMessage();
+
+    initAudio();
+
+}
+
+
+/* =========================================
+   PAUSE
+========================================= */
+
+function togglePause() {
+
+    if (
+        !gameStarted ||
+        gameOver
+    ) {
+
+        return;
+
+    }
+
+
+    gamePaused =
+        !gamePaused;
+
+
+    if (gamePaused) {
+
+        showMessage(
+
+            "DURAKLATILDI",
+
+            "Devam etmek için P tuşuna bas.",
+
+            "DEVAM ET"
+
+        );
+
+    } else {
+
+        hideMessage();
+
+    }
+
+}
+
+
+/* =========================================
+   RESET
+========================================= */
+
+function resetGame() {
+
+    score = 0;
+
+    level = 1;
+
+    lives = 3;
+
+    combo = 0;
+
+    gameStarted = false;
+
+    gameOver = false;
+
+    gamePaused = false;
+
+    shootCooldown = 0;
+
+    enemyShootTimer = 0;
+
+    player.x =
+        WIDTH / 2 -
+        player.width / 2;
+
+    bullets = [];
+
+    enemyBullets = [];
+
+    powerUps = [];
+
+    createInvaders();
+
+    updateUI();
+
+
+    showMessage(
+
+        "SPACE INVADERS",
+
+        "Uzaylı istilasını durdur!",
+
+        "OYUNA BAŞLA"
+
+    );
+
+}
+
+
+/* =========================================
+   UI
+========================================= */
+
+function updateUI() {
+
+    document.getElementById(
+        "score"
+    ).textContent = score;
+
+
+    document.getElementById(
+        "highScore"
+    ).textContent = highScore;
+
+
+    document.getElementById(
+        "level"
+    ).textContent = level;
+
+
+    document.getElementById(
+        "lives"
+    ).textContent = lives;
+
+}
+
+
+/* =========================================
+   MESAJ
+========================================= */
+
+const gameMessage =
+    document.getElementById(
+        "gameMessage"
+    );
+
+
+const messageTitle =
+    document.getElementById(
+        "messageTitle"
+    );
+
+
+const messageText =
+    document.getElementById(
+        "messageText"
+    );
+
+
+const startButton =
+    document.getElementById(
+        "startButton"
+    );
+
+
+function showMessage(
+    title,
+    text,
+    button
+) {
+
+    messageTitle.textContent =
+        title;
+
+    messageText.textContent =
+        text;
+
+    startButton.textContent =
+        button;
+
+    gameMessage.classList.remove(
+        "hidden"
+    );
+
+}
+
+
+function hideMessage() {
+
+    gameMessage.classList.add(
+        "hidden"
+    );
+
+}
+
+
+/* =========================================
+   YILDIZLAR
+========================================= */
+
+function updateStars() {
+
+    stars.forEach(
+        star => {
+
+            star.y +=
+                star.speed;
+
+            if (star.y > HEIGHT) {
+
+                star.y = 0;
+
+                star.x =
+                    Math.random() *
+                    WIDTH;
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================
+   ARKA PLAN
+========================================= */
+
+function drawBackground() {
+
+    ctx.fillStyle = "#02030a";
+
+    ctx.fillRect(
+        0,
+        0,
+        WIDTH,
+        HEIGHT
+    );
+
+
+    /* YILDIZLAR */
+
+    stars.forEach(
+        star => {
+
+            ctx.fillStyle =
+                "rgba(255,255,255,0.8)";
+
+            ctx.fillRect(
+
+                star.x,
+
+                star.y,
+
+                star.size,
+
+                star.size
+
+            );
+
+        }
+    );
+
+
+    /* UZAK GEZEGEN */
+
+    const gradient =
+        ctx.createRadialGradient(
+
+            580,
+            100,
+            10,
+
+            580,
+            100,
+            80
+
+        );
+
+
+    gradient.addColorStop(
+        0,
+        "rgba(120,0,255,0.3)"
+    );
+
+    gradient.addColorStop(
+        1,
+        "rgba(0,0,0,0)"
+    );
+
+
+    ctx.fillStyle =
+        gradient;
+
+    ctx.fillRect(
+        480,
+        0,
+        200,
+        200
+    );
+
+}
+
+
+/* =========================================
+   PLAYER ÇİZ
+========================================= */
+
+function drawPlayer() {
+
+    /* GÖVDE */
+
+    ctx.fillStyle =
+        "#00ffff";
+
+    ctx.fillRect(
+
+        player.x + 8,
+
+        player.y + 8,
+
+        player.width - 16,
+
+        player.height - 8
+
+    );
+
+
+    /* ÜST KISIM */
+
+    ctx.fillRect(
+
+        player.x + 17,
+
+        player.y,
+
+        16,
+
+        10
+
+    );
+
+
+    /* MOTOR */
+
+    ctx.fillStyle =
+        "#ff3333";
+
+    ctx.fillRect(
+
+        player.x + 3,
+
+        player.y + 17,
+
+        8,
+
+        6
+
+    );
+
+    ctx.fillRect(
+
+        player.x + 39,
+
+        player.y + 17,
+
+        8,
+
+        6
+
+    );
+
+
+    /* IŞIK */
+
+    ctx.fillStyle =
+        "#ffffff";
+
+    ctx.fillRect(
+
+        player.x + 22,
+
+        player.y + 3,
+
+        6,
+
+        7
+
+    );
+
+}
+
+
+/* =========================================
+   DÜŞMAN ÇİZ
+========================================= */
+
+function drawInvader(
+    enemy
+) {
+
+    const colors = [
+
+        "#00ff00",
+        "#00ffff",
+        "#ff00ff",
+        "#ffff00",
+        "#ff6600",
+        "#ff3333"
+
+    ];
+
+
+    ctx.fillStyle =
+        colors[
+            enemy.row %
+            colors.length
+        ];
+
+
+    const x = enemy.x;
+
+    const y = enemy.y;
+
+
+    /* GÖVDE */
+
+    ctx.fillRect(
+
+        x + 5,
+        y + 5,
+        22,
+        12
+
+    );
+
+
+    /* KOLLAR */
+
+    ctx.fillRect(
+
+        x,
+        y + 9,
+        7,
+        6
+
+    );
+
+    ctx.fillRect(
+
+        x + 25,
+        y + 9,
+        7,
+        6
+
+    );
+
+
+    /* ANTEN */
+
+    ctx.fillRect(
+
+        x + 8,
+        y,
+        4,
+        7
+
+    );
+
+    ctx.fillRect(
+
+        x + 20,
+        y,
+        4,
+        7
+
+    );
+
+
+    /* GÖZLER */
+
+    ctx.fillStyle =
+        "#000";
+
+    ctx.fillRect(
+
+        x + 9,
+        y + 8,
+        4,
+        4
+
+    );
+
+    ctx.fillRect(
+
+        x + 19,
+        y + 8,
+        4,
+        4
+
+    );
+
+
+    /* AYAKLAR */
+
+    ctx.fillStyle =
+        colors[
+            enemy.row %
+            colors.length
+        ];
+
+    ctx.fillRect(
+
+        x + 5,
+        y + 16,
+        7,
+        6
+
+    );
+
+    ctx.fillRect(
+
+        x + 20,
+        y + 16,
+        7,
+        6
+
+    );
+
+}
+
+
+/* =========================================
+   MERMİLERİ ÇİZ
+========================================= */
+
+function drawBullets() {
+
+    /* PLAYER */
+
+    ctx.fillStyle =
+        "#00ffff";
+
+
+    bullets.forEach(
+        bullet => {
+
+            ctx.fillRect(
+
+                bullet.x,
+
+                bullet.y,
+
+                bullet.width,
+
+                bullet.height
+
+            );
+
+        }
+    );
+
+
+    /* DÜŞMAN */
+
+    ctx.fillStyle =
+        "#ff3333";
+
+
+    enemyBullets.forEach(
+        bullet => {
+
+            ctx.fillRect(
+
+                bullet.x,
+
+                bullet.y,
+
+                bullet.width,
+
+                bullet.height
+
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================
+   POWER-UP ÇİZ
+========================================= */
+
+function drawPowerUps() {
+
+    powerUps.forEach(
+        power => {
+
+            if (
+                power.type ===
+                "life"
+            ) {
+
+                ctx.fillStyle =
+                    "#ff3366";
+
+            } else {
+
+                ctx.fillStyle =
+                    "#ffff00";
+
+            }
+
+
+            ctx.beginPath();
+
+            ctx.arc(
+
+                power.x +
+                power.width / 2,
+
+                power.y +
+                power.height / 2,
+
+                9,
+
+                0,
+
+                Math.PI * 2
+
+            );
+
+            ctx.fill();
+
+
+            ctx.fillStyle =
+                "#000";
+
+            ctx.font =
+                "bold 12px Arial";
+
+            ctx.textAlign =
+                "center";
+
+
+            ctx.fillText(
+
+                power.type === "life"
+                    ? "+"
+                    : "⚡",
+
+                power.x +
+                power.width / 2,
+
+                power.y + 14
+
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================
+   DRAW
+========================================= */
+
+function draw() {
+
+    drawBackground();
+
+    invaders.forEach(
+        enemy => {
+
+            if (enemy.alive) {
+
+                drawInvader(
+                    enemy
+                );
+
+            }
+
+        }
+    );
+
+    drawPowerUps();
+
+    drawBullets();
+
+    drawPlayer();
+
+}
+
+
+/* =========================================
+   GAME LOOP
+========================================= */
+
+function gameLoop(
+    time = 0
+) {
+
+    const deltaTime =
+        time - lastTime;
+
+    lastTime = time;
+
+
+    if (
+        gameStarted &&
+        !gamePaused &&
+        !gameOver
+    ) {
+
+        updatePlayer(
+            deltaTime
+        );
+
+        updateBullets();
+
+        updateInvaders(
+            deltaTime
+        );
+
+        updateCollisions();
+
+        updateStars();
+
+
+        enemyShootTimer +=
+            deltaTime;
+
+
+        const alive =
+            invaders.filter(
+                enemy =>
+                    enemy.alive
+            );
+
+
+        if (
+            enemyShootTimer >
+            Math.max(
+                250,
+                1000 -
+                level * 60
+            )
+        ) {
+
+            enemyShoot();
+
+            enemyShootTimer = 0;
+
+        }
+
+    } else {
+
+        updateStars();
+
+    }
+
+
+    draw();
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+}
+
+
+/* =========================================
+   START BUTONU
+========================================= */
+
+startButton.addEventListener(
+    "click",
+    function() {
+
+        initAudio();
+
+        startGame();
+
+    }
+);
+
+
+/* =========================================
+   MOBİL KONTROLLER
+========================================= */
+
+document
+    .querySelectorAll(
+        "[data-action]"
+    )
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "touchstart",
+                function(e) {
+
+                    e.preventDefault();
+
+                    const action =
+                        this.dataset.action;
+
+
+                    if (!gameStarted) {
+
+                        startGame();
+
+                    }
+
+
+                    if (
+                        action ===
+                        "left"
+                    ) {
+
+                        keys[
+                            "ArrowLeft"
+                        ] = true;
+
+                    }
+
+
+                    if (
+                        action ===
+                        "right"
+                    ) {
+
+                        keys[
+                            "ArrowRight"
+                        ] = true;
+
+                    }
+
+
+                    if (
+                        action ===
+                        "fire"
+                    ) {
+
+                        shoot();
+
+                    }
+
+                }
+            );
+
+
+            button.addEventListener(
+                "touchend",
+                function(e) {
+
+                    e.preventDefault();
+
+                    const action =
+                        this.dataset.action;
+
+
+                    if (
+                        action ===
+                        "left"
+                    ) {
+
+                        keys[
+                            "ArrowLeft"
+                        ] = false;
+
+                    }
+
+
+                    if (
+                        action ===
+                        "right"
+                    ) {
+
+                        keys[
+                            "ArrowRight"
+                        ] = false;
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+/* =========================================
+   BAŞLAT
+========================================= */
+
+resetGame();
+
+gameLoop();
+
+</script>
+
+</body>
+</html>

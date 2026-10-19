@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sayı Tahmin | Oyun Merkezi</title>
+    <link rel="stylesheet" href="oyunlar.css">
+</head>
+
+<body>
+
+    <div class="ana-menu-bar ana-menu-bar--game">
+        <a class="ana-menu-btn" href="../index.html">&#8592; ANA MENU</a>
+    </div>
+
+    <main class="game-shell">
+        <div class="topline">
+            <a class="brand-mark" href="../index.html">Proje Merkezi</a>
+            <a class="back-link" href="proje1.html">← Oyunlar</a>
+        </div>
+
+        <section class="game-panel" aria-labelledby="game-title">
+            <p class="eyebrow">Oyun 01 · Mantık</p>
+            <h1 id="game-title">Sayı Tahmin</h1>
+            <p class="game-lead">1 ile 100 arasında tuttuğum sayıyı bul. Daha az deneme, daha iyi skor.</p>
+
+            <form id="guess-form" class="form-row">
+                <input id="guess-input" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="1–100" aria-label="1 ile 100 arasında tahmin" required>
+                <button class="button-primary" type="submit">Tahmin et</button>
+            </form>
+
+            <p id="feedback" class="feedback" aria-live="polite">İlk tahminini yap.</p>
+            <div class="stats-row">
+                <div class="stat"><span class="stat-label">Deneme</span><span class="stat-value" id="guess-count">0</span></div>
+                <div class="stat"><span class="stat-label">Aralık</span><span class="stat-value">1–100</span></div>
+            </div>
+            <div class="action-row">
+                <button class="button-secondary" id="new-game" type="button">Yeni sayı</button>
+            </div>
+        </section>
+
+        <a class="menu-return" href="proje1.html">← Tüm oyunlara dön</a>
+    </main>
+
+    <script>
+        const form = document.getElementById("guess-form");
+        const input = document.getElementById("guess-input");
+        const feedback = document.getElementById("feedback");
+        const countDisplay = document.getElementById("guess-count");
+        let secretNumber;
+        let attempts;
+        let finished;
+
+        function startGame() {
+            secretNumber = Math.floor(Math.random() * 100) + 1;
+            attempts = 0;
+            finished = false;
+            countDisplay.textContent = attempts;
+            feedback.textContent = "İlk tahminini yap.";
+            input.disabled = false;
+            form.querySelector("button").disabled = false;
+            input.value = "";
+            input.focus();
+        }
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const guess = input.valueAsNumber;
+
+            if (!Number.isInteger(guess) || guess < 1 || guess > 100) {
+                feedback.textContent = "1 ile 100 arasında tam sayı gir.";
+                input.focus();
+                return;
+            }
+
+            if (finished) return;
+            attempts++;
+            countDisplay.textContent = attempts;
+
+            if (guess === secretNumber) {
+                feedback.textContent = `Bildin! ${attempts} denemede buldun.`;
+                finished = true;
+                input.disabled = true;
+                form.querySelector("button").disabled = true;
+            } else if (guess < secretNumber) {
+                feedback.textContent = "Daha büyük bir sayı dene. ↑";
+            } else {
+                feedback.textContent = "Daha küçük bir sayı dene. ↓";
+            }
+
+            input.select();
+        });
+
+        document.getElementById("new-game").addEventListener("click", startGame);
+        startGame();
+    </script>
+</body>
+
+</html>
