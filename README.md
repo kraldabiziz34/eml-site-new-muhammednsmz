@@ -168,9 +168,6 @@ Sitenin cep telefonlarında ve tabletlerde bozulmadan, ekrana duyarlı (Responsi
 
 ### CSS Seçicileri
 
-#### 📌 GÖREV 1: DEFTERE YAZILACAK (Sınav Konuları)
-
-Aşağıdaki CSS Seçicilerini ve ne işe yaradıklarını defterinize not alın:
 
 1. **Etiket Seçici (`body`, `h1`):** HTML etiketinin adıyla doğrudan seçer. Sayfadaki tüm o etiketleri etkiler.
 
@@ -188,16 +185,26 @@ Aşağıdaki CSS Seçicilerini ve ne işe yaradıklarını defterinize not alın
 
 ### JavaScript Temel Kavramları
 
-#### 📌 GÖREV 1: DEFTERE YAZILACAK (Sınav Konuları)
-
 1. **JavaScript Nedir?:** Web sayfalarına mantık, karar verme yeteneği ve kullanıcı ile etkileşim katan programlama dilidir.
-
 2. **DOM (Document Object Model):** JavaScript'in HTML etiketlerine müdahale edebilmesi için oluşturulan ağaç yapısıdır. `document.getElementById("Kutu")` kodu, HTML'deki ID'si "Kutu" olan elemanı bulup yakalamamızı sağlar.
-
 3. **var / let (Değişkenler):** Bilgisayarın geçici hafızasında veri (sayı, metin) saklayan kutulardır.
-
 4. **if / else:** Karar yapısıdır. Şart doğruysa (`if`) bir kodu, yanlışsa (`else`) başka bir kodu çalıştırır.
-
 5. **switch - case:** Bir değişkenin alabileceği ÇOK FAZLA seçenek (durum) varsa, `if-else` yerine daha düzenli olan bu komut kullanılır. İşlem bitince `break;` ile çıkılır.
-
 6. **return:** Bir fonksiyonun görevini bitirdikten sonra, kendisini çağıran yere bir değer "geri döndürmesi" işlemidir.
+
+### URL ve Sayfa Yapısı Kavramları
+
+1. **URL Parameters (Query Strings):** Web sayfaları arasında adres çubuğu üzerinden veri taşımak için kullanılır. Soru işareti `?` ile başlar. (Örn: `detay.html?id=50`)
+2. **URLSearchParams:** JavaScript'in adres çubuğundaki parametreleri cımbızla yakalayıp okumasını sağlayan kodudur.
+3. **Dinamik Sayfa (Dynamic Page):** İçeriği bizim elle yazmadığımız, URL'den gelen ID'ye göre API'den (Veritabanından) çekilen verilere göre saniyeler içinde şekil değiştiren sayfalardır (Örn: `detay.html`).
+4. **`<iframe>`:** Kendi sitemizin içine başka bir web sitesini (YouTube, Google Maps vb.) gömmemizi sağlayan HTML etiketidir.
+
+### API ve Asenkron Veri İşlemleri
+
+1. **API (Uygulama Geliştirme Arayüzü):** İki farklı yazılımın birbiriyle konuşmasını ve veri alışverişi yapmasını sağlayan köprüdür.
+2. **JSON (JavaScript Object Notation):** API'lerden bize gelen verilerin yazılış formatıdır. Anlaşılması kolay, hafif bir metin formatıdır.
+3. **`fetch()` Metodu:** JavaScript'te internetten (bir URL'den) veri çekmek için kullanılan asıl fonksiyondur.
+4. **`async / await`:** İnternetten veri çekmek zaman alacağı için JavaScript'e "bu işlem bitene kadar diğer kodlara geçme, bekle" diyen komutlardır (Asenkron programlama).
+5. **Template Literals (`` ` ``) Backtick:** JavaScript içinde HTML kodlarını çok kolay yazmamızı sağlayan ve içine `${degisken}` şeklinde JS değerleri gömmemize olanak tanıyan özel tırnak işaretidir.
+
+
