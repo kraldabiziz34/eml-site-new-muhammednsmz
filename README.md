@@ -1,4 +1,4 @@
-# Defter Notları
+# Defter Notları WEB TABANLI UYGULAMALAR
 
 ## Hafta 1
 
