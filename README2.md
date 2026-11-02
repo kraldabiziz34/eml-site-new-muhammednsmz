@@ -66,7 +66,7 @@
 
 ---
 
-## Hafta 3
+## Hafta 3 # MUHAMMED SAİD DANIŞMAZ
 
 ### Çözünürlük ve Renk Modları
 - **Web / İnternet Tasarımları:** 72 PPI çözünürlük, RGB renk modu.
@@ -143,7 +143,7 @@
 ---
 
 ## Hafta 6
-
+# MUHAMMED SAİD DANIŞMAZ
 ### Kırpma Maskesi (Clipping Mask)
 - Üstteki bir katmanın, altındaki katmanın sınırları içine hapsedilmesi işlemidir.
 - **Kısayol:** Alt tuşuna basılı tutularak iki katman arasındaki çizgiye tıklanır.
