@@ -79,7 +79,7 @@ Photoshop Araç Kutusu'ndan üç araç seç. Her birinin simgesini çizip İngil
 - **.org:** Ticari olmayan kuruluşlar
 - **.com:** Ticari kuruluşlar
 
-## Hafta 2
+## Hafta 2 # MUHAMMED SAİD DANIŞMAZ
 
 ### Grafik ve Photoshop: Kısayol Sözlüğü
 
@@ -134,6 +134,7 @@ Tarayıcıya HTML5 standartlarını kullandığımızı belirten zorunlu koddur.
 Sitenin cep telefonlarında ve tabletlerde bozulmadan, ekrana duyarlı (Responsive) çalışmasını sağlayan etikettir.
 
 ### BAŞLIK HİYERARŞİSİ
+# MUHAMMED SAİD DANIŞMAZ
 
 - Bir sayfada sadece bir tane `<h1>` (Ana Başlık) kullanılır.
 - Sıralama atlanamaz. Örneğin `<h2>`'den sonra `<h4>` yazılamaz, `<h3>` gelmelidir.
